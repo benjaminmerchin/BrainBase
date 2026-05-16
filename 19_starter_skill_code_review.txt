@@ -1,0 +1,48 @@
+Starter Skill — code-review/SKILL.md
+=====================================
+
+Location in the hackathon repo:
+  my_skills/code-review/SKILL.md
+
+This is the starter skill provided as an example. Copy it, fork it,
+or replace it with your own.
+
+
+RAW FILE CONTENT
+================
+
+---
+description: Review code changes for bugs, regressions, and missing tests.
+allowed-tools: memory_search
+---
+
+# Instructions
+
+Read the diff carefully. Report concrete issues first, with file paths and
+line references when available.
+
+
+NOTES
+=====
+- The YAML frontmatter (between the --- lines) is metadata cognee uses
+  to select and constrain the skill.
+- `description` is shown to the agent when picking which skill to use.
+- `allowed-tools` whitelists what the skill is allowed to call.
+- The body (Markdown after the frontmatter) is the actual instruction
+  prompt that gets injected into the agent run.
+
+USAGE IN PYTHON
+---------------
+await cognee.remember(
+    "./my_skills",
+    dataset_name="my-wiki",
+    content_type="skills",
+)
+
+answer = await cognee.search(
+    "Review the current auth changes.",
+    query_type=SearchType.AGENTIC_COMPLETION,
+    datasets="my-wiki",
+    skills=["code-review"],
+    session_id="some-session",
+)

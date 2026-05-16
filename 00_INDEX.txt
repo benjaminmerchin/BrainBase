@@ -1,0 +1,36 @@
+Cognee x Redis Hackathon — 2026-05-16
+======================================
+
+INDEX OF FILES
+--------------
+00_INDEX.txt              This file
+01_overview.txt           Concept & Karpathy reference
+02_challenge.txt          The 3 base operations
+03_prizes.txt             Cash + Redis prizes
+04_presentation.txt       3-minute pitch format
+05_schedule.txt           Day timeline
+06_partners.txt           Cognee (organizer), Redis, Pebblebed
+07_logistics.txt          Wi-Fi, Discord, slides, event page
+08_setup_keys.txt         OpenAI key (provided)
+09_redis_resources.txt    Redis-specific links
+10_architecture.txt       Two-tier memory model (Redis + Cognee)
+11_setup_install.txt      Install steps (uv, docker, env vars)
+12_cognee_api.txt         remember / recall / forget API examples
+13_skills_loop.txt        What a Skill is + the loop diagram
+14_skills_loop_python.txt Full Python self-improvement example
+15_ways_to_run.txt        SDK / CLI / UI / Cloud / Claude Code plugin
+16_submission.txt         What to submit (high level)
+17_resources.txt          Docs, repos, community links
+18_submission_template.txt  Full SUBMISSION.md template (fill in)
+19_starter_skill_code_review.txt  Example SKILL.md starter
+20_redis_101.txt          Redis pitch (tech partner, not organizer)
+21_redisvl.txt            RedisVL Python lib + vector search example
+22_cognee_redis_adapter.txt  Plug Redis as Cognee's vector backend
+23_best_use_of_redis_prize.txt  Side prize criteria + Redis startup program
+
+QUICK LINKS
+-----------
+Event page:    bit.ly/cognee-sf-may-2026
+GitHub:        github.com/topoteretes/cognee-hackathons
+Wi-Fi:         Pebblebed / ItsARiskAsset
+Discord:       discord.gg/nWXmFVEYg

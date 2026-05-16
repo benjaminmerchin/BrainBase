@@ -1,0 +1,36 @@
+Resources
+=========
+
+DOCS
+----
+Cognee Documentation:  https://docs.cognee.ai/
+Redis Documentation:   https://redis.io/docs/
+
+REFERENCE READING
+-----------------
+Karpathy on LLM Wikis:
+  https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f
+
+COMMUNITY
+---------
+Discord:  https://discord.gg/NQPKmU5CCg
+
+CODE
+----
+Cognee main repo:
+  https://github.com/topoteretes/cognee
+
+Cognee examples (skill feedback loop demo):
+  https://github.com/topoteretes/cognee/tree/main/examples/demos/skill_feedback_loop
+
+Cognee integrations (Claude Code plugin, etc.):
+  https://github.com/topoteretes/cognee-integrations
+
+Cognee community packages (Redis vector adaptor):
+  https://github.com/topoteretes/cognee-community/tree/main/packages/vector/redis
+
+Redis agent skills:
+  https://github.com/redis/agent-skills
+
+RedisVL (Python):
+  https://github.com/redis/redis-vl-python

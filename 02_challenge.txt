@@ -1,0 +1,21 @@
+The Challenge: Build an LLM Knowledge Wiki
+===========================================
+
+In this hands-on hackathon, you will use Cognee's open-source memory
+engine to build your LLM Knowledge Wiki.
+
+REQUIRED BASE OPERATIONS
+------------------------
+Your wiki should do three base operations:
+
+1. Ingest
+   - Take in raw documents / data sources
+   - Process and store them in persistent memory
+
+2. Query + Self-improve
+   - Retrieve information when queried
+   - Incrementally improve the wiki over time
+
+3. Lint
+   - Validate / clean up the wiki contents
+   - Maintain quality of the stored knowledge

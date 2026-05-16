@@ -1,0 +1,37 @@
+Setup — Install & Configure
+============================
+
+IMPORTANT
+---------
+You do NOT need to bring API keys or accounts. Cognee provides the
+LLM API key (OpenAI) and other event credentials at kickoff.
+
+PREREQUISITES
+-------------
+- Python 3.10 to 3.14
+- Docker (for Redis)
+- An LLM API key (provided at kickoff, or bring your own)
+
+STEP 1 - INSTALL COGNEE
+-----------------------
+uv venv && source .venv/bin/activate
+uv pip install "cognee[redis]"
+
+STEP 2 - CONFIGURE THE LLM
+--------------------------
+export LLM_API_KEY="<key-given-at-event>"
+
+Or use a local .env (cognee provides .env.template).
+Provider docs: https://docs.cognee.ai/setup-configuration/llm-providers
+
+Custom providers: set LLM_PROVIDER and LLM_MODEL.
+
+STEP 3 - START REDIS (session memory)
+-------------------------------------
+Redis is the session-memory layer (fast scratchpad your agent writes
+into during a conversation, before distillation into the graph).
+Cognee picks it up automatically when REDIS_URL is set and any
+cognee.remember(..., session_id=...) call routes there.
+
+docker run -p 6379:6379 redis:latest
+export REDIS_URL=redis://localhost:6379

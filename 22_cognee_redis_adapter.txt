@@ -1,0 +1,46 @@
+Cognee + Redis — Vector Memory Backend
+=======================================
+
+You can plug Redis in as Cognee's vector memory backend with one import.
+
+FLOW
+----
+  User input
+      |
+      v
+  Cognee Agent  <----- store/retrieve memories ----->  Redis Vector Store
+      |
+      v
+  LLM / Response
+
+
+PYTHON EXAMPLE
+==============
+
+import cognee
+from cognee.infrastructure.databases.vector \
+    import get_vectordb_config
+
+# Point Cognee at Redis as vector backend
+config = get_vectordb_config()
+config.vector_db_provider = "redis"
+config.vector_db_url = "redis://localhost:6379"
+
+# Use Cognee normally — Redis handles the memory
+await cognee.add(documents)
+await cognee.cognify()                      # builds the knowledge graph
+results = await cognee.search("What did we discuss?")
+
+
+WHY REDIS FOR COGNEE MEMORY?
+============================
+- Persistent memory across agent runs
+- Sub-ms similarity search at scale
+- Semantic deduplication built-in
+- Works with any embedding model
+- Free cloud tier — no infra setup
+
+
+REPO
+====
+https://github.com/topoteretes/cognee-community/tree/main/packages/vector/redis

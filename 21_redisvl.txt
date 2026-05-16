@@ -1,0 +1,69 @@
+RedisVL — Vector Search in Python
+==================================
+
+WHAT IS IT?
+-----------
+RedisVL is the Python vector library for Redis.
+
+  pip install redisvl
+
+FEATURES
+--------
+- Dedicated Python client for Redis as a vector DB
+- Built-in support for HNSW and FLAT index algorithms
+- Automatic embedding generation
+- Semantic caching to cut LLM costs
+- Reranking, hybrid search, and routing out-of-the-box
+- Fully async — non-blocking in agent pipelines
+
+PRIMITIVES
+----------
+Vector Search    KNN and range queries over dense embeddings
+Hybrid Search    Combine vector + full-text (BM25) in one query
+Semantic Cache   Skip re-calling the LLM for similar prompts
+Semantic Router  Route user intent to correct tool / agent
+
+
+EXAMPLE — VECTOR SEARCH IN ~10 LINES
+====================================
+
+from redisvl.index import SearchIndex
+from redisvl.query import VectorQuery
+from redisvl.utils.vectorize import OpenAITextVectorizer
+
+# 1. Define your schema
+schema = {
+    "index": {"name": "docs", "prefix": "doc"},
+    "fields": [
+        {"name": "content", "type": "text"},
+        {
+            "name": "embedding",
+            "type": "vector",
+            "attrs": {
+                "dims": 1536,
+                "algorithm": "hnsw",
+                "distance_metric": "cosine",
+            },
+        },
+    ],
+}
+
+# 2. Create index and load data
+index = SearchIndex.from_dict(schema)
+index.connect("redis://localhost:6379")
+index.create(overwrite=True)
+
+# 3. Vectorize and search
+vectorizer = OpenAITextVectorizer()
+query_vec = vectorizer.embed("What is Redis?")
+results = index.query(
+    VectorQuery(query_vec, "embedding", num_results=5)
+)
+
+
+WHAT YOU GET
+============
+HNSW indexing    Sub-ms ANN at hundreds of millions of vectors
+Hybrid queries   Mix vector KNN with full-text or numeric filters
+Async native     Non-blocking in FastAPI / async agents
+Auto-sync        Index updates on write — no reindex needed

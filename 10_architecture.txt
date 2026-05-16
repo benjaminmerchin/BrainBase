@@ -1,0 +1,48 @@
+Memory Architecture — Two-Tier Model
+=====================================
+
+Your wiki runs on a two-tier memory model:
+
+        [ agent / user ]
+              |
+              v
+    +--------------------------------+
+    | Redis - session memory         |  fast, ephemeral
+    | (working scratchpad, recent    |  per-conversation
+    |  conversations, raw events)    |
+    +--------------+-----------------+
+                   | distillation
+                   v
+    +--------------------------------+
+    | Cognee - permanent memory      |  structured, durable
+    | (knowledge graph, embeddings,  |  cross-session
+    |  skills, summaries)            |
+    +--------------------------------+
+
+KEY IDEAS
+---------
+- Redis = session memory. Fast cache, ephemeral, per-conversation.
+- Cognee = permanent memory. Session content is distilled into the
+  knowledge graph (entities, relationships, summaries, skills) so it
+  can be recalled across sessions and refined over time.
+- The self-improvement loop lives in the distillation step.
+  What gets promoted from Redis into the graph, how it is structured,
+  and how feedback rewrites it, is the CORE of your wiki design.
+
+CODE MAPPING (cognee session_id parameter)
+------------------------------------------
+# Goes to Redis session memory (fast cache, syncs to graph in bg)
+await cognee.remember("user just asked about retention",
+                      session_id="chat_1")
+
+# Goes straight to permanent knowledge graph
+await cognee.remember("Retention is calculated as ...")
+
+# Recall queries session memory first, falls through to the graph
+await cognee.recall("what did the user ask?", session_id="chat_1")
+
+WHAT JUDGES WANT TO SEE
+-----------------------
+- What your agent puts into session memory
+- How it decides what to distill into the graph
+- How distillation quality improves run over run

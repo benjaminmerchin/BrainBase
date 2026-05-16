@@ -1,0 +1,60 @@
+Skills & The Self-Improvement Loop
+===================================
+
+WHAT IS A SKILL?
+----------------
+A skill is a small Markdown file that tells the agent how to behave
+for a specific task. Skills live in a folder, get ingested into the
+graph via cognee.remember(..., content_type="skills"), and are
+selected at query time.
+
+After each run you record a SkillRunEntry with a score.
+Cognee turns that into a PROPOSAL to rewrite the skill, which you
+then explicitly APPLY.
+
+That two-step PROPOSE-THEN-APPLY cycle is what "self-improvement"
+means in this hackathon.
+
+THE LOOP
+--------
++--------------+   1. remember(skills)
+|  my_skills/  | ----------------------------+
++--------------+                             v
+                                      +--------------+
+2. search(AGENTIC_COMPLETION,         |   Cognee     |
+   skills=[...], session_id=...) ---> |  knowledge   |
+                                      |    graph     |
+3. score the run yourself             +------+-------+
+                                             |
+4. remember(SkillRunEntry, ..., apply=False) |  proposes
+                  v                          v
+                              +-------------------+
+                              |    improved       |
+                              |    SKILL.md       |
+                              +-------------------+
+
+FOLDER LAYOUT
+-------------
+my_skills/
+  code-review/
+    SKILL.md
+
+EXAMPLE SKILL FILE (my_skills/code-review/SKILL.md)
+---------------------------------------------------
+---
+description: Review code changes for bugs, regressions, missing tests.
+allowed-tools: memory_search
+---
+
+# Instructions
+
+Read the diff carefully. Report concrete issues first, with file
+paths and line references when available.
+
+NOTES
+-----
+Real wikis usually have several skills (one to extract, one to
+evaluate, one to write feedback, etc.).
+
+Starter skill in the repo:
+my_skills/code-review/SKILL.md

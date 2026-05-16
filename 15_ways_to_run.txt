@@ -1,0 +1,28 @@
+Other Ways to Run Cognee
+=========================
+
+PYTHON SDK
+  How:  import cognee
+  When: Building your wiki / agent logic
+
+CLI
+  How:  cognee-cli remember / recall / forget
+  When: Smoke tests, ad-hoc ingestion
+
+LOCAL UI
+  How:  cognee-cli -ui  -> http://localhost:3000
+  When: Inspecting the graph visually
+
+COGNEE CLOUD
+  How:  await cognee.serve(url=..., api_key=...)
+  When: Skipping infra during the event
+
+CLAUDE CODE PLUGIN
+  How:  cognee-integrations repo
+        https://github.com/topoteretes/cognee-integrations/tree/main/integrations/claude-code
+  When: Giving Claude Code persistent memory
+
+EXAMPLES
+  How:  examples/ folder in the cognee repo
+        https://github.com/topoteretes/cognee/tree/main/examples
+  When: Reference pipelines and demos

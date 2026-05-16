@@ -1,0 +1,15 @@
+AI-Memory Hackathon: Building your own Agent LLM Wiki
+========================================================
+
+CONCEPT
+-------
+"Instead of just retrieving from raw documents at query time, the LLM
+incrementally builds and maintains a persistent wiki." - Karpathy
+
+Recently, Karpathy popularised the idea of an LLM Wiki. This hackathon
+extends on that idea and builds one together with participants.
+
+REFERENCE
+---------
+Karpathy's explanation:
+https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f

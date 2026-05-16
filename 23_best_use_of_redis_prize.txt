@@ -1,0 +1,52 @@
+Best Use of Redis — Side Prize
+===============================
+
+PRIZE CONTENTS
+--------------
+- AirPods Pro     (one per team member)
+- Redis Hoodies   (one per team member)
+- 10K Redis Cloud Credits (for the team)
+
+
+HOW TO QUALIFY
+--------------
+1. Use one of these in your hack (and demo it):
+     - Redis Cloud
+     - RedisVL
+     - Cognee Redis Vector Adapter
+   Demonstrated both in the live demo AND on GitHub.
+
+2. Build something NEW today — no plagiarism.
+
+3. Strong preference for INTERESTING Redis use beyond basic caching.
+   (Vector search, hybrid search, semantic router, agent memory,
+    streams, pub/sub, etc.)
+
+
+KEY LINKS
+---------
+Free cloud DB:                   https://redis.io/login
+Redis AI resources (code):       https://github.com/redis-developer/redis-ai-resources
+Cognee Redis Vector Adapter:     https://github.com/topoteretes/cognee-community/tree/main/packages/vector/redis
+Redis Agent Skill repo:          https://github.com/redis/agent-skills
+RedisVL:                         https://github.com/redis/redis-vl-python
+
+
+COMING SOON — REDIS IRIS
+========================
+Redis teased a launch for "this Monday":
+  "Iris — an intelligent layer that brings native AI reasoning
+   to your Redis data."
+(Not directly usable during the hack, but worth knowing.)
+
+
+REDIS STARTUP PROGRAM (bonus, not hackathon-specific)
+=====================================================
+For Angel / Pre-seed / Seed venture-backed startups:
+- $25k Redis Cloud credit for 6 months (usage limits apply)
+- Early access to new Redis features and products
+- Dedicated customer support, monthly office hours
+- Access to Redis applied AI team
+- Co-marketing opportunities, investor / customer intros
+
+Apply:  https://redis.io/startups

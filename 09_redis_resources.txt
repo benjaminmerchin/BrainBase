@@ -1,0 +1,22 @@
+Redis Resources
+===============
+
+REDIS AGENT SKILL
+-----------------
+https://github.com/redis/agent-skills
+
+REDIS COGNEE VECTOR ADAPTOR
+---------------------------
+https://github.com/topoteretes/cognee-community/tree/main/packages/vector/redis
+
+REDISVL (Redis Vector Library for Python)
+-----------------------------------------
+https://github.com/redis/redis-vl-python
+
+REDIS CLOUD
+-----------
+https://redis.io/login
+
+CREDITS PROVIDED
+----------------
+10k Redis cloud credits available for participants

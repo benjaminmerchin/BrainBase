@@ -1,0 +1,65 @@
+Cognee API — Core Operations
+=============================
+
+Cognee exposes four operations:
+- remember
+- recall
+- forget
+- improve
+
+PYTHON EXAMPLE
+--------------
+import asyncio
+import cognee
+
+
+async def main():
+    # Permanent (runs add + cognify + improve under the hood)
+    await cognee.remember("Cognee turns documents into AI memory.")
+
+    # Session memory (fast cache, syncs to graph in background)
+    await cognee.remember(
+        "User prefers detailed explanations.",
+        session_id="chat_1",
+    )
+
+    # Query with auto-routing
+    results = await cognee.recall("What does Cognee do?")
+    for result in results:
+        print(result)
+
+    # Session-first, falls through to graph
+    results = await cognee.recall(
+        "What does the user prefer?",
+        session_id="chat_1",
+    )
+    for result in results:
+        print(result)
+
+    # Delete
+    await cognee.forget(dataset="main_dataset")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+CLI EQUIVALENT
+--------------
+cognee-cli remember "Cognee turns documents into AI memory."
+cognee-cli recall "What does Cognee do?"
+cognee-cli forget --all
+
+LOCAL UI
+--------
+cognee-cli -ui
+Web app: http://localhost:3000
+
+COGNEE CLOUD (optional, skip local infra)
+-----------------------------------------
+import cognee
+
+await cognee.serve(
+    url="https://your-instance.cognee.ai",
+    api_key="ck_...",
+)
+await cognee.remember("important context")

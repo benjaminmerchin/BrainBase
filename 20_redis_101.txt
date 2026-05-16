@@ -1,0 +1,32 @@
+Redis 101 — Technology Partner Pitch
+=====================================
+
+Note: Redis is the TECHNOLOGY PARTNER, not the main organizer.
+Cognee is the organizer. Redis sponsors the "Best Use of Redis Prize".
+
+TAGLINE
+-------
+"The world's fastest in-memory data platform, built for AI."
+"Build the LLM Wiki Your Agents Actually Remember."
+
+KEY NUMBERS
+-----------
+< 1 ms   typical read/write latency
+62 %     faster than the #2 vector DB
+10+      data types (strings, hashes, vectors, ...)
+1        pip install away
+
+WHAT REDIS DOES FOR YOUR AI STACK
+---------------------------------
+- Vector Search
+- Semantic Caching
+- Agent Memory
+- Session State
+- Semantic Router
+- Full-Text Search
+
+POSITIONING
+-----------
+Redis is NOT just a cache. It is a full-featured database:
+vector similarity search, full-text search, pub/sub, streams,
+geospatial, time series — all in one engine.

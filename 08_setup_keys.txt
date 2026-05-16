@@ -1,0 +1,14 @@
+Setup & API Keys
+================
+
+OPENAI KEY (provided for the hackathon)
+---------------------------------------
+<expired-test-key — original key was revoked, request a fresh one on event day>
+
+WARNING
+-------
+This key is shared during the event. Do not commit it to a public
+repo. Use a .env file (and add .env to .gitignore).
+
+Example .env entry:
+OPENAI_API_KEY=sk-proj-...

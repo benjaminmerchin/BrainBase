@@ -1,0 +1,18 @@
+Submission
+==========
+
+Each team submits:
+
+1. Short writeup of the idea and self-improvement loop
+2. The wiki implementation (code + skills, if any)
+3. Before/after evidence that the wiki improved from feedback
+4. A 3-minute demo
+
+TEMPLATE
+--------
+Use templates/SUBMISSION.md from the hackathon repo.
+Copy it into your team folder or PR description and fill it in.
+
+REPO LINK
+---------
+https://github.com/topoteretes/cognee-hackathons/tree/main/cognee-redis-hackathon-2026-05-16

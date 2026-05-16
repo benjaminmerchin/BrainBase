@@ -1,0 +1,17 @@
+Prizes
+======
+
+Cash Pool: $1,500+
+
+MAIN PRIZES
+-----------
+1st Prize: $800 cash
+2nd Prize: $500 cash
+3rd Prize: $200 cash
+
+ADDITIONAL PRIZES
+-----------------
+- Best Use of Redis Prize
+- AirPods (one for each team member)
+- Redis Hoodies (one for each team member)
+- 10k Redis Cloud credits

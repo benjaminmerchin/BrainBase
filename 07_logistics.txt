@@ -1,0 +1,24 @@
+Logistics & Links
+=================
+
+EVENT PAGE
+----------
+bit.ly/cognee-sf-may-2026
+
+WI-FI
+-----
+Network:  Pebblebed
+Password: ItsARiskAsset
+
+DISCORD
+-------
+Join: https://discord.gg/nWXmFVEYg
+Hackathon channel: #hackathon-sf-may-2026
+
+GITHUB REPO (hackathon details)
+-------------------------------
+https://github.com/topoteretes/cognee-hackathons/tree/main/cognee-redis-hackathon-2026-05-16
+
+PRESENTATION SLIDES
+-------------------
+https://docs.google.com/presentation/d/1M_vMAAm8Lo75IuT51uyGUwMLGIExPHE62onK2A7_JpM/edit

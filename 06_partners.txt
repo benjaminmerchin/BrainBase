@@ -1,0 +1,33 @@
+Organizer & Partners
+====================
+
+ORGANIZER: COGNEE
+-----------------
+Cognee is the main organizer of this hackathon.
+
+Cognee is an open-source AI memory engine that transforms unstructured
+data into persistent, queryable memory. It enables AI agents to store,
+retrieve, and reason over information across time, making it possible
+to build more reliable, adaptive, and stateful AI systems.
+
+Note: The hackathon challenge requires using Cognee's open-source
+memory engine to build your LLM Knowledge Wiki.
+
+TECHNOLOGY PARTNER: REDIS
+-------------------------
+Redis is a real-time context engine that unifies streaming and vector
+data to power intelligent applications and AI agents with instant
+awareness. It enables developers to process and serve dynamic context
+at sub-millisecond speed with enterprise-grade reliability, delivering
+highly responsive and personalized experiences at scale.
+
+VENTURE PARTNER: PEBBLEBED
+--------------------------
+Pebblebed is a technical early-stage venture firm.
+
+Notable people associated:
+- Background at OpenAI; ran AI for Stripe; inventor of FBLearner Flow
+- Keith Adams: founded Facebook AI Research, was chief architect at
+  Slack, 20th engineer at VMware
+- Tammie Siew: former Sequoia Southeast Asia investor; former
+  Sequoia & Notable Capital backed founder

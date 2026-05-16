@@ -1,0 +1,9 @@
+Presentation Format
+===================
+
+You will have 3 MINUTES to stand out.
+
+WHAT TO SHOW
+------------
+- Present your idea and explain how you leverage agent self-improvement
+- Run a live demo that showcases your agent in action
