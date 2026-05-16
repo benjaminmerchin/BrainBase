@@ -27,6 +27,7 @@ import cognee
 from cognee import SearchType
 
 from . import redis_state
+from .graph_snapshot import render_graph_html
 from .redis_state import ClaimState, RoundState
 
 DATASET = "wiki-adversary"
@@ -187,7 +188,7 @@ async def ingest_once(r, wiki_path: str, truth_path: str) -> str:
     # Snapshot the initial (corrupted) graph so the UI iframe has something
     # to show before round 1 lands.
     try:
-        html = await cognee.visualize()
+        html = await render_graph_html()
         await redis_state.set_graph_html(r, html)
         await redis_state.push_event(
             r, "ingest", "Initial graph snapshot rendered", level="info"
@@ -284,7 +285,7 @@ async def run_round(
 
     # Refresh the graph snapshot now that corrections have landed.
     try:
-        html = await cognee.visualize()
+        html = await render_graph_html()
         await redis_state.set_graph_html(r, html)
     except Exception as exc:
         await redis_state.push_event(
