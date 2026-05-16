@@ -1,0 +1,42 @@
+[
+  {
+    "text": "Cognee exposes four operations: remember, recall, forget, and enhance.",
+    "is_true": false
+  },
+  {
+    "text": "The cognee Python package version is 1.1.0, released in April 2026.",
+    "is_true": true
+  },
+  {
+    "text": "At query time, skills are selected by their IDs using the skills parameter.",
+    "is_true": false
+  },
+  {
+    "text": "When the success score of a skill falls below 0.5, Cognee generates a SkillImprovementProposal.",
+    "is_true": true
+  },
+  {
+    "text": "The CLI for Cognee is called cognee-cli, and it supports the operations remember, recall, and delete.",
+    "is_true": false
+  },
+  {
+    "text": "With REDIS_URL set, Cognee uses Redis as the session-memory layer.",
+    "is_true": true
+  },
+  {
+    "text": "Cognee allows up to 100 MB of stored memory and 1,000 queries per day on the free tier.",
+    "is_true": false
+  },
+  {
+    "text": "The default distance metric for HNSW indexing in Redis is set to cosine.",
+    "is_true": true
+  },
+  {
+    "text": "The Python package supports versions 3.10 through 3.12.",
+    "is_true": false
+  },
+  {
+    "text": "Running cognee-cli -ui serves a local web UI at http://localhost:3000.",
+    "is_true": true
+  }
+]
