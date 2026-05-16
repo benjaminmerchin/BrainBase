@@ -40,12 +40,21 @@ type RoundPayload = {
   claims: ClaimState[];
 };
 
+type EventEntry = {
+  ts: number;
+  kind: string;
+  level: "info" | "success" | "warn" | "error";
+  message: string;
+  extra?: Record<string, unknown>;
+};
+
 type ApiState = {
   available: boolean;
   status: string;
   round: RoundPayload | null;
   vulnerabilities: { claim: string; severity: number }[];
   additions: string[];
+  events: EventEntry[];
 };
 
 export async function GET() {
@@ -56,14 +65,16 @@ export async function GET() {
     round: null,
     vulnerabilities: [],
     additions: [],
+    events: [],
   };
 
   try {
-    const [roundJson, stateHash, vulnsRaw, additions] = await Promise.all([
+    const [roundJson, stateHash, vulnsRaw, additions, eventsRaw] = await Promise.all([
       r.get("round:current"),
       r.hgetall("state"),
       r.zrevrange("vulnerabilities", 0, 4, "WITHSCORES"),
       r.lrange("wiki:additions", 0, 9),
+      r.lrange("events:log", 0, 39),
     ]);
 
     const round: RoundPayload | null = roundJson
@@ -78,12 +89,23 @@ export async function GET() {
       });
     }
 
+    const events: EventEntry[] = eventsRaw
+      .map((raw) => {
+        try {
+          return JSON.parse(raw) as EventEntry;
+        } catch {
+          return null;
+        }
+      })
+      .filter((e): e is EventEntry => e !== null);
+
     return NextResponse.json({
       available: true,
       status: stateHash?.status ?? "unknown",
       round,
       vulnerabilities,
       additions,
+      events,
     } satisfies ApiState);
   } catch {
     return NextResponse.json(empty);

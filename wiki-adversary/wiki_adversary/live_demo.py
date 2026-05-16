@@ -148,20 +148,36 @@ async def inject_correction(r, claim_text: str, was_true: bool) -> None:
     )
     await cognee.remember(correction, dataset_name=DATASET)
     await redis_state.record_addition(r, correction)
+    await redis_state.push_event(
+        r,
+        kind="correction",
+        message=f"Wiki patched: \"{claim_text[:80]}\" is {truth_word}",
+        level="success",
+    )
 
 
 # --- Main loop -----------------------------------------------------------------
 
 
-async def ingest_once(wiki_path: str, truth_path: str) -> str:
+async def ingest_once(r, wiki_path: str, truth_path: str) -> str:
     """Seed the wiki with the (corrupted) wiki source. Return the truth text
     for the Attacker to read."""
     wiki_text = Path(wiki_path).read_text(encoding="utf-8")
     truth_text = Path(truth_path).read_text(encoding="utf-8")
+    await redis_state.push_event(
+        r, "ingest",
+        f"Seeding wiki from {wiki_path} ({len(wiki_text)} bytes — contains deliberate errors)",
+        level="info",
+    )
     print(f"Seeding wiki from {wiki_path} ({len(wiki_text)} bytes, has errors)...")
     await cognee.prune.prune_data()
     await cognee.prune.prune_system(metadata=True)
     await cognee.remember(wiki_text, dataset_name=DATASET)
+    await redis_state.push_event(
+        r, "ingest",
+        f"Attacker armed with truth source ({len(truth_text)} bytes)",
+        level="info",
+    )
     print(f"Attacker will read from {truth_path} ({len(truth_text)} bytes, truth)")
     return truth_text
 
@@ -173,6 +189,11 @@ async def run_round(
     round_idx: int,
 ) -> None:
     await redis_state.set_status(r, "attacking")
+    await redis_state.push_event(
+        r, "round_start",
+        f"Round {round_idx} starting — generating {CLAIMS_PER_ROUND} adversarial claims",
+        level="info",
+    )
 
     claims_raw = await generate_attacks(client, source, CLAIMS_PER_ROUND)
     claims = [
@@ -180,6 +201,14 @@ async def run_round(
                    text=c["text"], truth=bool(c["is_true"]))
         for i, c in enumerate(claims_raw)
     ]
+
+    await redis_state.push_event(
+        r, "attack",
+        f"Attacker emitted {len(claims)} claims "
+        f"({sum(1 for c in claims if c.truth)} true / "
+        f"{sum(1 for c in claims if not c.truth)} false)",
+        level="info",
+    )
 
     # Publish "claims with no verdict yet" so the UI starts animating immediately.
     await redis_state.write_round(
@@ -197,9 +226,20 @@ async def run_round(
         is_correct = verdict == c.truth
         if is_correct:
             correct += 1
+            await redis_state.push_event(
+                r, "verdict",
+                f"Defender ✓ ({'TRUE' if verdict else 'FALSE'}): {c.text[:80]}",
+                level="success",
+            )
         else:
             severity = 1.0 if (verdict and not c.truth) else 0.6
             await redis_state.record_vulnerability(r, c.text, severity)
+            err = "false-positive" if (verdict and not c.truth) else "false-negative"
+            await redis_state.push_event(
+                r, "miss",
+                f"Defender ✗ {err} (said {verdict}, truth {c.truth}): {c.text[:80]}",
+                level="error",
+            )
 
         # Update incrementally so the UI sees each verdict land.
         await redis_state.write_round(
@@ -228,6 +268,15 @@ async def run_round(
         ),
     )
 
+    score_pct = int(100 * correct / len(claims))
+    level = "success" if score_pct >= 80 else "warn" if score_pct >= 50 else "error"
+    await redis_state.push_event(
+        r, "round_end",
+        f"Round {round_idx} complete: {correct}/{len(claims)} ({score_pct}%) "
+        f"— {len(misses)} correction{'s' if len(misses) != 1 else ''} injected",
+        level=level,
+    )
+
     print(
         f"  round {round_idx}: {correct}/{len(claims)} correct "
         f"({len(misses)} corrections injected)"
@@ -242,7 +291,8 @@ async def main_async(wiki_source: str, truth_source: str) -> None:
     try:
         await redis_state.reset(r)
         await redis_state.set_status(r, "ingesting")
-        source = await ingest_once(wiki_source, truth_source)
+        await redis_state.push_event(r, "status", "Pipeline started", level="info")
+        source = await ingest_once(r, wiki_source, truth_source)
         await redis_state.set_status(r, "ready")
 
         round_idx = 0

@@ -56,7 +56,32 @@ async def reset(r: redis.Redis) -> None:
         "vulnerabilities",
         "wiki:additions",
         "attacks:pending",
+        "events:log",
     )
+
+
+async def push_event(
+    r: redis.Redis,
+    kind: str,
+    message: str,
+    level: str = "info",
+    extra: dict | None = None,
+) -> None:
+    """Append a pipeline event for the UI to display.
+
+    kind:    ingest | round_start | attack | verdict | miss | correction |
+             round_end | status | error
+    level:   info | success | warn | error
+    """
+    entry = {
+        "ts": time.time(),
+        "kind": kind,
+        "level": level,
+        "message": message,
+        "extra": extra or {},
+    }
+    await r.lpush("events:log", json.dumps(entry))
+    await r.ltrim("events:log", 0, 99)
 
 
 async def set_status(r: redis.Redis, status: str) -> None:

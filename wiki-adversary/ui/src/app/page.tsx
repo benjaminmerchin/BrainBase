@@ -41,12 +41,19 @@ type ApiClaim = {
   verdict: boolean | null;
   rationale?: string;
 };
+type EventEntry = {
+  ts: number;
+  kind: string;
+  level: "info" | "success" | "warn" | "error";
+  message: string;
+};
 type ApiState = {
   available: boolean;
   status: string;
   round: { index: number; scorePct: number; status: string; claims: ApiClaim[] } | null;
   vulnerabilities: { claim: string; severity: number }[];
   additions: string[];
+  events: EventEntry[];
 };
 
 function useLiveState(): ApiState | null {
@@ -63,7 +70,7 @@ function useLiveState(): ApiState | null {
         const data: ApiState = await res.json();
         if (!aborted.current) setState(data);
       } catch {
-        if (!aborted.current) setState((s) => s ?? { available: false, status: "offline", round: null, vulnerabilities: [], additions: [] });
+        if (!aborted.current) setState((s) => s ?? { available: false, status: "offline", round: null, vulnerabilities: [], additions: [], events: [] });
       } finally {
         if (!aborted.current) timer = setTimeout(tick, POLL_MS);
       }
@@ -115,6 +122,7 @@ export default function Home() {
     : VULNERABILITIES;
 
   const additions: string[] | null = isLive ? live!.additions : null;
+  const events: EventEntry[] = isLive ? live!.events : [];
   const roundKey = isLive ? `live-${round.index}` : `mock-${mockKey}`;
 
   return (
@@ -516,6 +524,22 @@ export default function Home() {
               </div>
             </DashCard>
           )}
+
+          {events.length > 0 && (
+            <DashCard
+              className="mt-6"
+              title="Pipeline log"
+              subtitle="Every action the backend takes — newest first."
+            >
+              <ScrollArea className="h-[280px] pr-3">
+                <div className="space-y-1.5 font-mono text-xs">
+                  {events.map((e, i) => (
+                    <EventRow key={`${e.ts}-${i}`} event={e} />
+                  ))}
+                </div>
+              </ScrollArea>
+            </DashCard>
+          )}
         </div>
       </section>
 
@@ -526,7 +550,40 @@ export default function Home() {
   );
 }
 
-/* ---------- internal cards ---------- */
+/* ---------- internal components ---------- */
+
+function EventRow({ event }: { event: EventEntry }) {
+  const date = new Date(event.ts * 1000);
+  const time = date.toLocaleTimeString("en-GB", { hour12: false });
+  const ms = String(date.getMilliseconds()).padStart(3, "0");
+
+  const tint = {
+    info: "text-muted-foreground",
+    success: "text-emerald-400",
+    warn: "text-amber-400",
+    error: "text-rose-400",
+  }[event.level];
+
+  const dot = {
+    info: "bg-muted-foreground/60",
+    success: "bg-emerald-400",
+    warn: "bg-amber-400",
+    error: "bg-rose-400",
+  }[event.level];
+
+  return (
+    <div className="flex items-start gap-2.5 rounded-md px-2 py-1 transition-colors hover:bg-secondary/30">
+      <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", dot)} />
+      <span className="shrink-0 text-muted-foreground/70 tabular-nums">
+        {time}.{ms}
+      </span>
+      <span className="shrink-0 rounded border border-border/60 bg-secondary/40 px-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+        {event.kind}
+      </span>
+      <span className={cn("min-w-0 break-words", tint)}>{event.message}</span>
+    </div>
+  );
+}
 
 function StepCard({
   index,
