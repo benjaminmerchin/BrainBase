@@ -68,7 +68,7 @@ SOURCE (canonical truth):
 
 async def generate_attacks(client: AsyncOpenAI, source: str, n: int) -> list[dict]:
     resp = await client.chat.completions.create(
-        model=os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+        model=os.environ.get("LLM_MODEL", "gpt-5.4-nano"),
         response_format={"type": "json_object"},
         temperature=0.8,
         messages=[
@@ -80,6 +80,23 @@ async def generate_attacks(client: AsyncOpenAI, source: str, n: int) -> list[dic
 
 
 # --- Defender -----------------------------------------------------------------
+
+ORACLE_PROMPT = """You are an independent fact-checker. Read the SOURCE below — it is
+the canonical truth on this topic. Judge whether the CLAIM is TRUE or FALSE
+according to the source. If the source does not address the claim at all,
+answer FALSE.
+
+You do NOT see any wiki or graph. Only this source. Be strict.
+
+Return strict JSON: {{"truth": "true"|"false", "reason": "..."}}.
+
+SOURCE (canonical truth):
+---
+{source}
+---
+
+CLAIM: {claim}"""
+
 
 JUDGE_PROMPT = """A claim must be judged TRUE or FALSE using ONLY the WIKI EVIDENCE below.
 
@@ -102,6 +119,28 @@ WIKI EVIDENCE:
 CLAIM: {claim}"""
 
 
+async def oracle_check(
+    client: AsyncOpenAI, source: str, claim_text: str
+) -> bool:
+    """Independent verifier. Reads the canonical truth source directly, never
+    the wiki. Returns the ground-truth value of the claim — the ONLY signal
+    we trust when deciding whether to inject a correction."""
+    resp = await client.chat.completions.create(
+        model=os.environ.get("LLM_MODEL", "gpt-5.4-nano"),
+        response_format={"type": "json_object"},
+        temperature=0.0,
+        messages=[
+            {"role": "system", "content": "You output strict JSON only."},
+            {
+                "role": "user",
+                "content": ORACLE_PROMPT.format(source=source, claim=claim_text),
+            },
+        ],
+    )
+    data = json.loads(resp.choices[0].message.content)
+    return str(data.get("truth", "false")).lower() == "true"
+
+
 async def judge_claim(
     client: AsyncOpenAI, claim_text: str
 ) -> tuple[bool, str]:
@@ -116,7 +155,7 @@ async def judge_claim(
     evidence = "\n".join(getattr(r, "text", str(r)) for r in recall) or "(no evidence)"
 
     resp = await client.chat.completions.create(
-        model=os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+        model=os.environ.get("LLM_MODEL", "gpt-5.4-nano"),
         response_format={"type": "json_object"},
         temperature=0.0,
         messages=[
@@ -245,10 +284,25 @@ async def run_round(
 
     correct = 0
     for i, c in enumerate(claims):
+        # Two independent calls per claim: Defender (consults wiki) and Oracle
+        # (consults canonical source). Oracle is the only ground truth.
         verdict, rationale = await judge_claim(client, c.text)
+        oracle_truth = await oracle_check(client, source, c.text)
+
+        # If the Attacker labelled this claim wrong, log it as a hallucination
+        # and trust the Oracle.
+        if c.truth != oracle_truth:
+            await redis_state.push_event(
+                r, "oracle_override",
+                f"Attacker claimed is_true={c.truth} but Oracle says "
+                f"{oracle_truth}: {c.text[:80]}",
+                level="warn",
+            )
+            c.truth = oracle_truth
+
         c.verdict = verdict
         c.rationale = rationale
-        is_correct = verdict == c.truth
+        is_correct = verdict == oracle_truth
         if is_correct:
             correct += 1
             await redis_state.push_event(

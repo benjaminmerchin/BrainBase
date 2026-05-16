@@ -44,7 +44,7 @@ REPORT_PATH = Path("bench_results.md")
 async def regen_claims(client: AsyncOpenAI, source: str, n: int) -> list[dict]:
     """Generate the frozen test set. Saved to disk so reruns are comparable."""
     resp = await client.chat.completions.create(
-        model=os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+        model=os.environ.get("LLM_MODEL", "gpt-5.4-nano"),
         response_format={"type": "json_object"},
         temperature=0.6,
         messages=[
@@ -66,7 +66,7 @@ async def judge(client: AsyncOpenAI, claim_text: str) -> tuple[bool, str]:
     )
     evidence = "\n".join(getattr(r, "text", str(r)) for r in recall) or "(no evidence)"
     resp = await client.chat.completions.create(
-        model=os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+        model=os.environ.get("LLM_MODEL", "gpt-5.4-nano"),
         response_format={"type": "json_object"},
         temperature=0.0,
         messages=[
