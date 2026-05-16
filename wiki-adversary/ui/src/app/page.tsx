@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -27,26 +27,95 @@ import {
   ROUND_2,
   SKILL_DIFF,
   VULNERABILITIES,
+  type Round,
+  type Vulnerability,
 } from "@/lib/demo-data";
 
-const CYCLE_MS = 6000;
+const MOCK_CYCLE_MS = 6000;
+const POLL_MS = 1000;
 
-export default function Home() {
-  const [roundKey, setRoundKey] = useState(0);
-  const [showImproved, setShowImproved] = useState(false);
-  const round = showImproved ? ROUND_2 : ROUND_1;
+type ApiClaim = {
+  id: string;
+  text: string;
+  truth: boolean;
+  verdict: boolean | null;
+  rationale?: string;
+};
+type ApiState = {
+  available: boolean;
+  status: string;
+  round: { index: number; scorePct: number; status: string; claims: ApiClaim[] } | null;
+  vulnerabilities: { claim: string; severity: number }[];
+  additions: string[];
+};
 
-  const advance = useCallback(() => {
-    setShowImproved((v) => !v);
-    setRoundKey((k) => k + 1);
+function useLiveState(): ApiState | null {
+  const [state, setState] = useState<ApiState | null>(null);
+  const aborted = useRef(false);
+
+  useEffect(() => {
+    aborted.current = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const tick = async () => {
+      try {
+        const res = await fetch("/api/state", { cache: "no-store" });
+        const data: ApiState = await res.json();
+        if (!aborted.current) setState(data);
+      } catch {
+        if (!aborted.current) setState((s) => s ?? { available: false, status: "offline", round: null, vulnerabilities: [], additions: [] });
+      } finally {
+        if (!aborted.current) timer = setTimeout(tick, POLL_MS);
+      }
+    };
+    tick();
+    return () => {
+      aborted.current = true;
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
-  // Auto-loop. The timer resets whenever roundKey changes — so clicking the
-  // manual skip button restarts the cycle cleanly instead of double-firing.
+  return state;
+}
+
+export default function Home() {
+  const live = useLiveState();
+  const isLive = !!(live?.available && live.round);
+
+  // Mock fallback — only runs when live data is unavailable.
+  const [mockKey, setMockKey] = useState(0);
+  const [showImproved, setShowImproved] = useState(false);
+  const advance = useCallback(() => {
+    setShowImproved((v) => !v);
+    setMockKey((k) => k + 1);
+  }, []);
   useEffect(() => {
-    const t = setTimeout(advance, CYCLE_MS);
+    if (isLive) return;
+    const t = setTimeout(advance, MOCK_CYCLE_MS);
     return () => clearTimeout(t);
-  }, [roundKey, advance]);
+  }, [mockKey, advance, isLive]);
+
+  const round: Round = isLive
+    ? {
+        index: live!.round!.index,
+        scorePct: live!.round!.scorePct,
+        claims: live!.round!.claims.map((c) => ({
+          id: c.id,
+          text: c.text,
+          truth: c.truth,
+          verdict: c.verdict,
+        })),
+      }
+    : showImproved
+      ? ROUND_2
+      : ROUND_1;
+
+  const vulnerabilities: Vulnerability[] = isLive
+    ? live!.vulnerabilities.map((v) => ({ claim: v.claim, severity: v.severity }))
+    : VULNERABILITIES;
+
+  const additions: string[] | null = isLive ? live!.additions : null;
+  const roundKey = isLive ? `live-${round.index}` : `mock-${mockKey}`;
 
   return (
     <div className="relative min-h-dvh overflow-x-clip bg-background text-foreground">
@@ -60,6 +129,15 @@ export default function Home() {
             <span className="text-sm font-medium tracking-tight">
               Wiki Adversary
             </span>
+            {isLive && (
+              <span className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                </span>
+                Live · {live?.status}
+              </span>
+            )}
           </div>
           <nav className="flex items-center gap-1">
             <a
@@ -366,7 +444,7 @@ export default function Home() {
                 }
               >
                 <div className="space-y-2">
-                  {VULNERABILITIES.map((v) => (
+                  {vulnerabilities.map((v) => (
                     <div
                       key={v.claim}
                       className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-secondary/40 px-3 py-2 text-xs"
@@ -384,36 +462,60 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Skill diff */}
-          <DashCard
-            className="mt-6"
-            title="Defender skill — auto-rewritten between rounds"
-            subtitle={
-              <>
-                <code>my_skills/defender/SKILL.md</code> · diff produced by{" "}
-                <code>improve_skill(apply=True)</code>
-              </>
-            }
-          >
-            <div className="grid gap-4 lg:grid-cols-2">
-              <div>
-                <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                  Before · round 1
-                </div>
-                <pre className="overflow-x-auto rounded-lg border border-border/60 bg-secondary/40 p-3 text-xs leading-relaxed">
-                  {SKILL_DIFF.before}
-                </pre>
+          {/* Wiki growth — live: corrections injected; mock: skill diff */}
+          {additions && additions.length > 0 ? (
+            <DashCard
+              className="mt-6"
+              title="Wiki additions — facts injected after misses"
+              subtitle={
+                <>
+                  Each missed claim is appended to the graph via{" "}
+                  <code>cognee.remember(...)</code>. The wiki literally grows.
+                </>
+              }
+            >
+              <div className="space-y-2">
+                {additions.map((fact, i) => (
+                  <pre
+                    key={i}
+                    className="overflow-x-auto whitespace-pre-wrap rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs leading-relaxed text-foreground/90"
+                  >
+                    {fact}
+                  </pre>
+                ))}
               </div>
-              <div>
-                <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-emerald-400">
-                  After · round 2
+            </DashCard>
+          ) : (
+            <DashCard
+              className="mt-6"
+              title="Defender skill — auto-rewritten between rounds"
+              subtitle={
+                <>
+                  <code>my_skills/defender/SKILL.md</code> · diff produced by{" "}
+                  <code>improve_skill(apply=True)</code>
+                </>
+              }
+            >
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div>
+                  <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    Before · round 1
+                  </div>
+                  <pre className="overflow-x-auto rounded-lg border border-border/60 bg-secondary/40 p-3 text-xs leading-relaxed">
+                    {SKILL_DIFF.before}
+                  </pre>
                 </div>
-                <pre className="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs leading-relaxed">
-                  {SKILL_DIFF.after}
-                </pre>
+                <div>
+                  <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-emerald-400">
+                    After · round 2
+                  </div>
+                  <pre className="overflow-x-auto rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs leading-relaxed">
+                    {SKILL_DIFF.after}
+                  </pre>
+                </div>
               </div>
-            </div>
-          </DashCard>
+            </DashCard>
+          )}
         </div>
       </section>
 

@@ -1,0 +1,108 @@
+"""Redis keys for the live demo.
+
+Layout (so the Next.js route handler can read everything in one snapshot):
+
+  state                       hash  {round, score_pct, total_correct, total_seen,
+                                     started_at, last_updated, status}
+  round:current               hash  {index, scorePct, status, claims_json}
+  vulnerabilities             zset  claim_text -> severity (1.0 false-positive,
+                                                            0.6 false-negative)
+  wiki:additions              list  JSON strings of facts injected by the loop
+                                    (LPUSH + LTRIM 50)
+  attacks:pending             stream raw audit trail of generated claims
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import time
+from dataclasses import asdict, dataclass
+
+import redis.asyncio as redis
+
+
+def get_client() -> redis.Redis:
+    return redis.from_url(
+        os.environ.get("REDIS_URL", "redis://localhost:6379"),
+        decode_responses=True,
+    )
+
+
+@dataclass
+class ClaimState:
+    id: str
+    text: str
+    truth: bool
+    verdict: bool | None = None
+    rationale: str = ""
+
+
+@dataclass
+class RoundState:
+    index: int
+    scorePct: int
+    status: str  # "ingesting" | "attacking" | "judging" | "improving" | "done"
+    claims: list[ClaimState]
+
+
+# --- writers (called by the Python loop) -------------------------------------
+
+
+async def reset(r: redis.Redis) -> None:
+    await r.delete(
+        "state",
+        "round:current",
+        "vulnerabilities",
+        "wiki:additions",
+        "attacks:pending",
+    )
+
+
+async def set_status(r: redis.Redis, status: str) -> None:
+    await r.hset(
+        "state",
+        mapping={
+            "status": status,
+            "last_updated": str(time.time()),
+        },
+    )
+
+
+async def write_round(r: redis.Redis, round_state: RoundState) -> None:
+    payload = {
+        "index": round_state.index,
+        "scorePct": round_state.scorePct,
+        "status": round_state.status,
+        "claims": [asdict(c) for c in round_state.claims],
+    }
+    await r.set("round:current", json.dumps(payload))
+    await r.hset(
+        "state",
+        mapping={
+            "round": round_state.index,
+            "score_pct": round_state.scorePct,
+            "status": round_state.status,
+            "last_updated": str(time.time()),
+        },
+    )
+
+
+async def record_vulnerability(
+    r: redis.Redis, claim_text: str, severity: float
+) -> None:
+    await r.zadd("vulnerabilities", {claim_text: severity})
+
+
+async def record_addition(r: redis.Redis, fact_text: str) -> None:
+    await r.lpush("wiki:additions", fact_text)
+    await r.ltrim("wiki:additions", 0, 49)
+
+
+async def push_attack(r: redis.Redis, round_idx: int, claim: dict) -> None:
+    await r.xadd(
+        "attacks:pending",
+        {"round": str(round_idx), "claim": json.dumps(claim)},
+        maxlen=200,
+        approximate=True,
+    )
