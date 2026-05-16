@@ -55,6 +55,7 @@ async def reset(r: redis.Redis) -> None:
         "round:current",
         "vulnerabilities",
         "wiki:additions",
+        "wiki:contents",
         "attacks:pending",
         "events:log",
     )
@@ -122,6 +123,19 @@ async def record_vulnerability(
 async def record_addition(r: redis.Redis, fact_text: str) -> None:
     await r.lpush("wiki:additions", fact_text)
     await r.ltrim("wiki:additions", 0, 49)
+
+
+# wiki:contents holds the current "what's in the wiki" snapshot — originals
+# from the seeded source at the bottom, corrections at the top (LPUSH).
+async def seed_wiki_contents(r: redis.Redis, facts: list[str]) -> None:
+    await r.delete("wiki:contents")
+    if facts:
+        await r.rpush("wiki:contents", *facts)
+
+
+async def push_wiki_fact(r: redis.Redis, fact: str) -> None:
+    await r.lpush("wiki:contents", fact)
+    await r.ltrim("wiki:contents", 0, 199)
 
 
 async def push_attack(r: redis.Redis, round_idx: int, claim: dict) -> None:

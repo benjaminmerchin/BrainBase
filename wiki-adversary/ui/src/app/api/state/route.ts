@@ -55,6 +55,7 @@ type ApiState = {
   vulnerabilities: { claim: string; severity: number }[];
   additions: string[];
   events: EventEntry[];
+  wiki: string[];
 };
 
 export async function GET() {
@@ -66,15 +67,17 @@ export async function GET() {
     vulnerabilities: [],
     additions: [],
     events: [],
+    wiki: [],
   };
 
   try {
-    const [roundJson, stateHash, vulnsRaw, additions, eventsRaw] = await Promise.all([
+    const [roundJson, stateHash, vulnsRaw, additions, eventsRaw, wiki] = await Promise.all([
       r.get("round:current"),
       r.hgetall("state"),
       r.zrevrange("vulnerabilities", 0, 4, "WITHSCORES"),
       r.lrange("wiki:additions", 0, 9),
       r.lrange("events:log", 0, 39),
+      r.lrange("wiki:contents", 0, 99),
     ]);
 
     const round: RoundPayload | null = roundJson
@@ -106,6 +109,7 @@ export async function GET() {
       vulnerabilities,
       additions,
       events,
+      wiki,
     } satisfies ApiState);
   } catch {
     return NextResponse.json(empty);

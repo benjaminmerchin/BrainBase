@@ -148,6 +148,7 @@ async def inject_correction(r, claim_text: str, was_true: bool) -> None:
     )
     await cognee.remember(correction, dataset_name=DATASET)
     await redis_state.record_addition(r, correction)
+    await redis_state.push_wiki_fact(r, correction)
     await redis_state.push_event(
         r,
         kind="correction",
@@ -173,6 +174,16 @@ async def ingest_once(r, wiki_path: str, truth_path: str) -> str:
     await cognee.prune.prune_data()
     await cognee.prune.prune_system(metadata=True)
     await cognee.remember(wiki_text, dataset_name=DATASET)
+
+    # Surface the wiki contents so the UI can show them. Split by paragraph,
+    # skip empty lines and the leading H1 / inline comment.
+    initial_facts = [
+        p.strip()
+        for p in wiki_text.split("\n\n")
+        if p.strip() and not p.strip().startswith("#")
+    ]
+    await redis_state.seed_wiki_contents(r, initial_facts)
+
     await redis_state.push_event(
         r, "ingest",
         f"Attacker armed with truth source ({len(truth_text)} bytes)",

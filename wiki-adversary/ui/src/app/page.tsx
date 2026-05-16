@@ -54,6 +54,7 @@ type ApiState = {
   vulnerabilities: { claim: string; severity: number }[];
   additions: string[];
   events: EventEntry[];
+  wiki: string[];
 };
 
 function useLiveState(): ApiState | null {
@@ -70,7 +71,7 @@ function useLiveState(): ApiState | null {
         const data: ApiState = await res.json();
         if (!aborted.current) setState(data);
       } catch {
-        if (!aborted.current) setState((s) => s ?? { available: false, status: "offline", round: null, vulnerabilities: [], additions: [], events: [] });
+        if (!aborted.current) setState((s) => s ?? { available: false, status: "offline", round: null, vulnerabilities: [], additions: [], events: [], wiki: [] });
       } finally {
         if (!aborted.current) timer = setTimeout(tick, POLL_MS);
       }
@@ -123,6 +124,7 @@ export default function Home() {
 
   const additions: string[] | null = isLive ? live!.additions : null;
   const events: EventEntry[] = isLive ? live!.events : [];
+  const wiki: string[] = isLive ? live!.wiki : [];
   const roundKey = isLive ? `live-${round.index}` : `mock-${mockKey}`;
 
   return (
@@ -468,30 +470,49 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Wiki growth — live: corrections injected; mock: skill diff */}
-          {additions && additions.length > 0 ? (
+          {/* What's actually in the wiki right now */}
+          {wiki.length > 0 && (
             <DashCard
               className="mt-6"
-              title="Wiki additions — facts injected after misses"
+              title={`Wiki contents — ${wiki.length} entries`}
               subtitle={
                 <>
-                  Each missed claim is appended to the graph via{" "}
-                  <code>cognee.remember(...)</code>. The wiki literally grows.
+                  Live snapshot of the knowledge graph. Corrections injected by
+                  the loop are at the top; the originally seeded (corrupted)
+                  facts are at the bottom.
                 </>
               }
             >
-              <div className="space-y-2">
-                {additions.map((fact, i) => (
-                  <pre
-                    key={i}
-                    className="overflow-x-auto whitespace-pre-wrap rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs leading-relaxed text-foreground/90"
-                  >
-                    {fact}
-                  </pre>
-                ))}
-              </div>
+              <ScrollArea className="h-[360px] pr-3">
+                <div className="space-y-2">
+                  {wiki.map((fact, i) => {
+                    const isCorrection = fact.startsWith("Correction");
+                    return (
+                      <pre
+                        key={i}
+                        className={cn(
+                          "overflow-x-auto whitespace-pre-wrap rounded-lg p-3 text-xs leading-relaxed",
+                          isCorrection
+                            ? "border border-emerald-500/30 bg-emerald-500/5 text-foreground/90"
+                            : "border border-border/60 bg-secondary/30 text-muted-foreground",
+                        )}
+                      >
+                        {isCorrection && (
+                          <span className="mb-1 mr-2 inline-block rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-emerald-300">
+                            patched · round {Math.max(1, Math.ceil((i + 1) / 2))}
+                          </span>
+                        )}
+                        {fact}
+                      </pre>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
             </DashCard>
-          ) : (
+          )}
+
+          {/* Skill diff fallback — only shown in mock mode (additions are part of wiki now) */}
+          {!isLive && (
             <DashCard
               className="mt-6"
               title="Defender skill — auto-rewritten between rounds"
