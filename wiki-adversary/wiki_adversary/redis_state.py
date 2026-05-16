@@ -58,6 +58,7 @@ async def reset(r: redis.Redis) -> None:
         "wiki:contents",
         "attacks:pending",
         "events:log",
+        "graph:html",
     )
 
 
@@ -136,6 +137,12 @@ async def seed_wiki_contents(r: redis.Redis, facts: list[str]) -> None:
 async def push_wiki_fact(r: redis.Redis, fact: str) -> None:
     await r.lpush("wiki:contents", fact)
     await r.ltrim("wiki:contents", 0, 199)
+
+
+async def set_graph_html(r: redis.Redis, html: str) -> None:
+    """Persist the latest cognee.visualize() HTML snapshot so the UI iframe
+    can fetch it without touching the filesystem."""
+    await r.set("graph:html", html)
 
 
 async def push_attack(r: redis.Redis, round_idx: int, claim: dict) -> None:

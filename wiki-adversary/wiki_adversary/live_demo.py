@@ -184,6 +184,19 @@ async def ingest_once(r, wiki_path: str, truth_path: str) -> str:
     ]
     await redis_state.seed_wiki_contents(r, initial_facts)
 
+    # Snapshot the initial (corrupted) graph so the UI iframe has something
+    # to show before round 1 lands.
+    try:
+        html = await cognee.visualize()
+        await redis_state.set_graph_html(r, html)
+        await redis_state.push_event(
+            r, "ingest", "Initial graph snapshot rendered", level="info"
+        )
+    except Exception as exc:
+        await redis_state.push_event(
+            r, "error", f"initial graph snapshot failed: {exc!r}", level="warn"
+        )
+
     await redis_state.push_event(
         r, "ingest",
         f"Attacker armed with truth source ({len(truth_text)} bytes)",
@@ -268,6 +281,15 @@ async def run_round(
     misses = [c for c in claims if c.verdict != c.truth]
     for c in misses:
         await inject_correction(r, c.text, c.truth)
+
+    # Refresh the graph snapshot now that corrections have landed.
+    try:
+        html = await cognee.visualize()
+        await redis_state.set_graph_html(r, html)
+    except Exception as exc:
+        await redis_state.push_event(
+            r, "error", f"graph snapshot failed: {exc!r}", level="warn"
+        )
 
     await redis_state.write_round(
         r,

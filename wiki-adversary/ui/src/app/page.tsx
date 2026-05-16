@@ -470,6 +470,31 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Knowledge graph — D3 force-directed snapshot from cognee */}
+          {isLive && (
+            <DashCard
+              className="mt-6"
+              title="Knowledge graph"
+              subtitle={
+                <>
+                  Live D3 snapshot from <code>cognee.visualize()</code>. Each
+                  bubble is an entity in the graph; each line a relation. The
+                  snapshot refreshes after every round.
+                </>
+              }
+            >
+              <div className="relative -mx-5 -mb-5 overflow-hidden rounded-b-xl border-t border-border/60 bg-white">
+                <iframe
+                  key={`graph-${round.index}`}
+                  src={`/api/graph?r=${round.index}`}
+                  title="Cognee knowledge graph"
+                  className="block h-[520px] w-full border-0"
+                  sandbox="allow-scripts allow-same-origin"
+                />
+              </div>
+            </DashCard>
+          )}
+
           {/* What's actually in the wiki right now */}
           {wiki.length > 0 && (
             <DashCard
