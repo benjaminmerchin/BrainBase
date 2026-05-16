@@ -76,7 +76,7 @@ export async function GET() {
       r.hgetall("state"),
       r.zrevrange("vulnerabilities", 0, 4, "WITHSCORES"),
       r.lrange("wiki:additions", 0, 9),
-      r.lrange("events:log", 0, 39),
+      r.lrange("events:log", 0, 499),
       r.lrange("wiki:contents", 0, 99),
     ]);
 

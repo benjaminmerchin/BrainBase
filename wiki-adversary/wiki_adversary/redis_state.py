@@ -83,7 +83,7 @@ async def push_event(
         "extra": extra or {},
     }
     await r.lpush("events:log", json.dumps(entry))
-    await r.ltrim("events:log", 0, 99)
+    await r.ltrim("events:log", 0, 499)
 
 
 async def set_status(r: redis.Redis, status: str) -> None:
