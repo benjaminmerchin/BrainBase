@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -29,15 +29,24 @@ import {
   VULNERABILITIES,
 } from "@/lib/demo-data";
 
+const CYCLE_MS = 6000;
+
 export default function Home() {
   const [roundKey, setRoundKey] = useState(0);
   const [showImproved, setShowImproved] = useState(false);
   const round = showImproved ? ROUND_2 : ROUND_1;
 
-  const trigger = () => {
+  const advance = useCallback(() => {
     setShowImproved((v) => !v);
     setRoundKey((k) => k + 1);
-  };
+  }, []);
+
+  // Auto-loop. The timer resets whenever roundKey changes — so clicking the
+  // manual skip button restarts the cycle cleanly instead of double-firing.
+  useEffect(() => {
+    const t = setTimeout(advance, CYCLE_MS);
+    return () => clearTimeout(t);
+  }, [roundKey, advance]);
 
   return (
     <div className="relative min-h-dvh overflow-x-clip bg-background text-foreground">
@@ -51,12 +60,6 @@ export default function Home() {
             <span className="text-sm font-medium tracking-tight">
               Wiki Adversary
             </span>
-            <Badge
-              variant="outline"
-              className="ml-2 hidden border-border/60 text-[10px] font-normal text-muted-foreground sm:inline-flex"
-            >
-              v0.1 · hackathon build
-            </Badge>
           </div>
           <nav className="flex items-center gap-1">
             <a
@@ -237,9 +240,9 @@ export default function Home() {
                 and reaches 90% once the skill is auto-rewritten.
               </p>
             </div>
-            <Button onClick={trigger} size="lg" className="h-11 gap-2 px-5">
+            <Button onClick={advance} size="lg" className="h-11 gap-2 px-5">
               <Play className="h-4 w-4" />
-              {showImproved ? "Replay Round 1" : "Run Round 2"}
+              Skip to next round
             </Button>
           </div>
 
