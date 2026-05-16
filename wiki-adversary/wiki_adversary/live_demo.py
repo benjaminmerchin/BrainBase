@@ -30,7 +30,8 @@ from . import redis_state
 from .redis_state import ClaimState, RoundState
 
 DATASET = "wiki-adversary"
-DEFAULT_SOURCE = "data/sample_source.md"
+DEFAULT_WIKI_SOURCE = "data/sample_source.md"  # seeds the wiki (contains errors)
+DEFAULT_TRUTH_SOURCE = "data/source_truth.md"  # attacker's ground truth
 CLAIMS_PER_ROUND = 5
 ROUND_PAUSE_SECONDS = 4
 
@@ -46,15 +47,19 @@ def _install_sigterm():
 
 # --- Attacker -----------------------------------------------------------------
 
-ATTACKER_PROMPT = """You are an adversarial fact-checker. Read the SOURCE and produce
-exactly {n} short claims about it. Half must be TRUE (faithful to the source),
-half must be FALSE in a plausible way: subtle substitution of names, numbers,
-flags or relationships; near-paraphrase that flips meaning. Avoid claims that
-aren't grounded in the source at all.
+ATTACKER_PROMPT = """You are a fact-checker. The SOURCE below is the canonical TRUTH about a topic.
+A separate "wiki" exists which is supposed to mirror the source but may
+contain errors. Your job: generate exactly {n} short claims about the topic
+that are FAITHFUL to the SOURCE, and a wiki-checker will judge them.
+
+Roughly half of your claims should be TRUE (faithful to the source), half
+FALSE (a SINGLE detail — number, identifier, version, function name, port,
+unit — substituted relative to the source). Keep sentence structure clean
+and natural. Vary the topics across claims.
 
 Return strict JSON: {{"claims": [{{"text": "...", "is_true": true|false}}, ...]}}.
 
-SOURCE:
+SOURCE (canonical truth):
 ---
 {source}
 ---"""
@@ -75,11 +80,16 @@ async def generate_attacks(client: AsyncOpenAI, source: str, n: int) -> list[dic
 
 # --- Defender -----------------------------------------------------------------
 
-JUDGE_PROMPT = """A claim must be judged TRUE or FALSE using only the WIKI EVIDENCE.
+JUDGE_PROMPT = """A claim must be judged TRUE or FALSE using ONLY the WIKI EVIDENCE below.
 
-If the evidence supports the claim, answer TRUE. If the evidence contradicts the
-claim, answer FALSE. If the evidence is silent on the claim, answer FALSE
-(the wiki is the source of truth).
+Do not use any outside knowledge. The wiki is what you have.
+
+If the wiki contradicts the claim → answer FALSE.
+If the wiki supports the claim → answer TRUE.
+If the wiki is silent on the claim → answer FALSE.
+
+IMPORTANT: if multiple wiki entries conflict, prefer the most recent or any
+entry that starts with "Correction:" — those are authoritative updates.
 
 Return strict JSON: {{"verdict": "true"|"false", "rationale": "..."}}.
 
@@ -94,10 +104,13 @@ CLAIM: {claim}"""
 async def judge_claim(
     client: AsyncOpenAI, claim_text: str
 ) -> tuple[bool, str]:
+    # Use raw graph chunks (not GRAPH_COMPLETION) so the judge has to do the
+    # actual reasoning instead of receiving a pre-baked answer.
     recall = await cognee.recall(
-        f"Evidence for or against: {claim_text}",
+        claim_text,
+        query_type=SearchType.CHUNKS,
         datasets=[DATASET],
-        top_k=4,
+        top_k=2,
     )
     evidence = "\n".join(getattr(r, "text", str(r)) for r in recall) or "(no evidence)"
 
@@ -122,11 +135,16 @@ async def judge_claim(
 
 
 async def inject_correction(r, claim_text: str, was_true: bool) -> None:
-    """Append a correcting fact to the wiki and log it for the UI."""
+    """Append an authoritative correction to the wiki and log it for the UI.
+
+    The prefix "Correction:" matters: the JUDGE_PROMPT tells the LLM to
+    prefer entries starting with this prefix when wiki entries conflict.
+    """
+    truth_word = "TRUE" if was_true else "FALSE"
     correction = (
-        f"Correction: the claim {claim_text!r} is "
-        f"{'TRUE' if was_true else 'FALSE'} according to the source. "
-        "Trust the source over plausible paraphrases."
+        f"Correction (authoritative): the statement \"{claim_text}\" is "
+        f"{truth_word}. The wiki had outdated or incorrect information about "
+        "this; this entry supersedes any conflicting prior wiki content."
     )
     await cognee.remember(correction, dataset_name=DATASET)
     await redis_state.record_addition(r, correction)
@@ -135,13 +153,17 @@ async def inject_correction(r, claim_text: str, was_true: bool) -> None:
 # --- Main loop -----------------------------------------------------------------
 
 
-async def ingest_once(source_path: str) -> str:
-    text = Path(source_path).read_text(encoding="utf-8")
-    print(f"Ingesting {source_path} ({len(text)} bytes)...")
+async def ingest_once(wiki_path: str, truth_path: str) -> str:
+    """Seed the wiki with the (corrupted) wiki source. Return the truth text
+    for the Attacker to read."""
+    wiki_text = Path(wiki_path).read_text(encoding="utf-8")
+    truth_text = Path(truth_path).read_text(encoding="utf-8")
+    print(f"Seeding wiki from {wiki_path} ({len(wiki_text)} bytes, has errors)...")
     await cognee.prune.prune_data()
     await cognee.prune.prune_system(metadata=True)
-    await cognee.remember(text, dataset_name=DATASET)
-    return text
+    await cognee.remember(wiki_text, dataset_name=DATASET)
+    print(f"Attacker will read from {truth_path} ({len(truth_text)} bytes, truth)")
+    return truth_text
 
 
 async def run_round(
@@ -212,7 +234,7 @@ async def run_round(
     )
 
 
-async def main_async(source_path: str) -> None:
+async def main_async(wiki_source: str, truth_source: str) -> None:
     _install_sigterm()
     client = AsyncOpenAI(api_key=os.environ["LLM_API_KEY"])
     r = redis_state.get_client()
@@ -220,7 +242,7 @@ async def main_async(source_path: str) -> None:
     try:
         await redis_state.reset(r)
         await redis_state.set_status(r, "ingesting")
-        source = await ingest_once(source_path)
+        source = await ingest_once(wiki_source, truth_source)
         await redis_state.set_status(r, "ready")
 
         round_idx = 0
@@ -242,8 +264,9 @@ async def main_async(source_path: str) -> None:
 
 def main() -> None:
     load_dotenv()
-    source = os.environ.get("LIVE_SOURCE", DEFAULT_SOURCE)
-    asyncio.run(main_async(source))
+    wiki = os.environ.get("LIVE_WIKI_SOURCE", DEFAULT_WIKI_SOURCE)
+    truth = os.environ.get("LIVE_TRUTH_SOURCE", DEFAULT_TRUTH_SOURCE)
+    asyncio.run(main_async(wiki, truth))
 
 
 if __name__ == "__main__":
