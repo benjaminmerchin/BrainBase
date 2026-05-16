@@ -131,9 +131,7 @@ export default function Home() {
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/60 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6 sm:px-10">
           <div className="flex items-center gap-2.5">
-            <div className="grid h-7 w-7 place-items-center rounded-md bg-foreground/95 text-background">
-              <Shield className="h-4 w-4" />
-            </div>
+            <Logo className="h-7 w-7" />
             <span className="text-sm font-medium tracking-tight">
               Wiki Adversary
             </span>
@@ -551,6 +549,46 @@ export default function Home() {
 }
 
 /* ---------- internal components ---------- */
+
+function Logo({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      className={className}
+      aria-hidden="true"
+      role="img"
+    >
+      <defs>
+        <linearGradient
+          id="wa-logo"
+          x1="0"
+          y1="0"
+          x2="32"
+          y2="32"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor="#a78bfa" />
+          <stop offset="100%" stopColor="#22d3ee" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M 16 3 L 27 9 L 27 23 L 16 29 L 5 23 L 5 9 Z"
+        fill="none"
+        stroke="url(#wa-logo)"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M 10 10 L 22 22"
+        stroke="url(#wa-logo)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+      <circle cx="16" cy="16" r="2.6" fill="url(#wa-logo)" />
+    </svg>
+  );
+}
 
 function EventRow({ event }: { event: EventEntry }) {
   const date = new Date(event.ts * 1000);
