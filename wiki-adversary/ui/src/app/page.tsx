@@ -47,6 +47,8 @@ type EventEntry = {
   level: "info" | "success" | "warn" | "error";
   message: string;
 };
+type HistoryEntry = { index: number; scorePct: number };
+
 type ApiState = {
   available: boolean;
   status: string;
@@ -55,6 +57,7 @@ type ApiState = {
   additions: string[];
   events: EventEntry[];
   wiki: string[];
+  history: HistoryEntry[];
 };
 
 function useLiveState(): ApiState | null {
@@ -71,7 +74,7 @@ function useLiveState(): ApiState | null {
         const data: ApiState = await res.json();
         if (!aborted.current) setState(data);
       } catch {
-        if (!aborted.current) setState((s) => s ?? { available: false, status: "offline", round: null, vulnerabilities: [], additions: [], events: [], wiki: [] });
+        if (!aborted.current) setState((s) => s ?? { available: false, status: "offline", round: null, vulnerabilities: [], additions: [], events: [], wiki: [], history: [] });
       } finally {
         if (!aborted.current) timer = setTimeout(tick, POLL_MS);
       }
@@ -125,6 +128,7 @@ export default function Home() {
   const additions: string[] | null = isLive ? live!.additions : null;
   const events: EventEntry[] = isLive ? live!.events : [];
   const wiki: string[] = isLive ? live!.wiki : [];
+  const history: HistoryEntry[] = isLive ? live!.history : [];
   const roundKey = isLive ? `live-${round.index}` : `mock-${mockKey}`;
 
   return (
@@ -331,6 +335,12 @@ export default function Home() {
               Skip to next round
             </Button>
           </div>
+
+          {history.length > 0 && (
+            <div className="mb-4">
+              <ScoreTrend history={history} currentIndex={round.index} />
+            </div>
+          )}
 
           <div className="grid gap-4 lg:grid-cols-3">
             <DashCard
@@ -595,6 +605,112 @@ export default function Home() {
 }
 
 /* ---------- internal components ---------- */
+
+function ScoreTrend({
+  history,
+  currentIndex,
+}: {
+  history: HistoryEntry[];
+  currentIndex: number;
+}) {
+  const avg = Math.round(
+    history.reduce((a, h) => a + h.scorePct, 0) / history.length,
+  );
+  const last = history[history.length - 1]?.scorePct ?? 0;
+  const first = history[0]?.scorePct ?? 0;
+  const delta = last - first;
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 px-5 py-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Score trend
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            Defender accuracy across the {history.length}{" "}
+            completed round{history.length === 1 ? "" : "s"}
+          </div>
+        </div>
+        <div className="flex items-center gap-6 text-xs">
+          <Metric label="Latest" value={`${last}%`} />
+          <Metric label="Average" value={`${avg}%`} />
+          <Metric
+            label="Lift vs R1"
+            value={`${delta >= 0 ? "+" : ""}${delta} pts`}
+            tone={delta >= 0 ? "good" : "bad"}
+          />
+        </div>
+      </div>
+      <div className="flex items-end gap-1 px-5 py-5">
+        {history.map((h) => {
+          const tone =
+            h.scorePct >= 80
+              ? "from-emerald-500/60 to-emerald-400"
+              : h.scorePct >= 50
+                ? "from-amber-500/60 to-amber-400"
+                : "from-rose-500/60 to-rose-400";
+          const active = h.index === currentIndex;
+          return (
+            <div
+              key={h.index}
+              title={`Round ${h.index}: ${h.scorePct}%`}
+              className="group flex flex-1 flex-col items-center"
+            >
+              <div
+                className={cn(
+                  "relative w-full overflow-hidden rounded-t",
+                  active && "ring-1 ring-foreground/40",
+                )}
+                style={{ height: `${Math.max(4, h.scorePct * 0.6)}px` }}
+              >
+                <div
+                  className={cn(
+                    "absolute inset-0 bg-gradient-to-t transition-transform",
+                    tone,
+                    "group-hover:scale-y-105",
+                  )}
+                />
+              </div>
+              {history.length <= 20 && (
+                <span className="mt-1 text-[9px] text-muted-foreground/60">
+                  {h.index}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "good" | "bad";
+}) {
+  return (
+    <div className="flex flex-col items-end">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "font-mono text-sm font-medium tabular-nums",
+          tone === "good" && "text-emerald-400",
+          tone === "bad" && "text-rose-400",
+        )}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
 
 function Logo({ className }: { className?: string }) {
   return (

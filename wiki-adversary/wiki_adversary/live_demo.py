@@ -357,6 +357,7 @@ async def run_round(
     )
 
     score_pct = int(100 * correct / len(claims))
+    await redis_state.record_round_score(r, round_idx, score_pct)
     level = "success" if score_pct >= 80 else "warn" if score_pct >= 50 else "error"
     await redis_state.push_event(
         r, "round_end",

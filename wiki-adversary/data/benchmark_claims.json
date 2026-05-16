@@ -1,6 +1,14 @@
 [
   {
-    "text": "Cognee exposes four operations: remember, recall, forget, and enhance.",
+    "text": "Cognee exposes four operations: remember, recall, forget, and improve.",
+    "is_true": true
+  },
+  {
+    "text": "Calling remember(text) without a session_id writes directly into the permanent knowledge graph.",
+    "is_true": true
+  },
+  {
+    "text": "recall(query_text) returns up to top_k=5 results by default.",
     "is_true": false
   },
   {
@@ -8,35 +16,27 @@
     "is_true": true
   },
   {
-    "text": "At query time, skills are selected by their IDs using the skills parameter.",
-    "is_true": false
-  },
-  {
-    "text": "When the success score of a skill falls below 0.5, Cognee generates a SkillImprovementProposal.",
+    "text": "Skills are Markdown (.md) files with YAML frontmatter that declares description and allowed-tools.",
     "is_true": true
   },
   {
-    "text": "The CLI for Cognee is called cognee-cli, and it supports the operations remember, recall, and delete.",
+    "text": "Skill improvement proposals are generated when success_score is above the default score_threshold of 0.5.",
     "is_true": false
   },
   {
-    "text": "With REDIS_URL set, Cognee uses Redis as the session-memory layer.",
+    "text": "When improve_skill is called with apply=True, the SkillImprovementProposal can be applied.",
     "is_true": true
   },
   {
-    "text": "Cognee allows up to 100 MB of stored memory and 1,000 queries per day on the free tier.",
-    "is_true": false
-  },
-  {
-    "text": "The default distance metric for HNSW indexing in Redis is set to cosine.",
+    "text": "With vector_db_provider=\"redis\", Cognee uses Redis as the vector store with default dims=1536 and distance_metric=\"cosine\".",
     "is_true": true
   },
   {
-    "text": "The Python package supports versions 3.10 through 3.12.",
+    "text": "The CLI command is named cognee-ui and supports remember, recall, and forget.",
     "is_true": false
   },
   {
-    "text": "Running cognee-cli -ui serves a local web UI at http://localhost:3000.",
+    "text": "Cognee Cloud is served via await cognee.serve(url=\"\u2026\", api_key=\"ck_\u2026\") and the free tier includes up to 50 MB of stored memory.",
     "is_true": true
   }
 ]

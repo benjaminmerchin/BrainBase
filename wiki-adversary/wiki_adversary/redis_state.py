@@ -59,6 +59,7 @@ async def reset(r: redis.Redis) -> None:
         "attacks:pending",
         "events:log",
         "graph:html",
+        "rounds:history",
     )
 
 
@@ -143,6 +144,16 @@ async def set_graph_html(r: redis.Redis, html: str) -> None:
     """Persist the latest cognee.visualize() HTML snapshot so the UI iframe
     can fetch it without touching the filesystem."""
     await r.set("graph:html", html)
+
+
+async def record_round_score(r: redis.Redis, index: int, score_pct: int) -> None:
+    """Append one round's final score to the history list. Drives the
+    score-trend sparkline in the UI."""
+    await r.rpush(
+        "rounds:history",
+        json.dumps({"index": index, "scorePct": score_pct}),
+    )
+    await r.ltrim("rounds:history", -100, -1)
 
 
 async def push_attack(r: redis.Redis, round_idx: int, claim: dict) -> None:

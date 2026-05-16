@@ -35,6 +35,7 @@ from wiki_adversary.live_demo import (
     DEFAULT_TRUTH_SOURCE,
     DEFAULT_WIKI_SOURCE,
     JUDGE_PROMPT,
+    oracle_check,
 )
 
 CACHE_PATH = Path("data/benchmark_claims.json")
@@ -113,20 +114,22 @@ async def run(n: int, regenerate: bool) -> None:
         claims = json.loads(CACHE_PATH.read_text())[:n]
         print(f"Loaded {len(claims)} frozen test claims from {CACHE_PATH}")
 
-    # 3. Baseline.
+    # 3. Baseline. Use Oracle for ground truth (mirrors live behaviour).
     print("\n=== Baseline (corrupted wiki) ===")
     baseline: list[dict] = []
     for i, c in enumerate(claims):
         verdict, rationale = await judge(client, c["text"])
-        correct = verdict == c["is_true"]
+        oracle_truth = await oracle_check(client, truth, c["text"])
+        correct = verdict == oracle_truth
         mark = "✓" if correct else "✗"
-        print(f"  {mark} truth={c['is_true']!s:5} verdict={verdict!s:5}  {c['text'][:80]}")
-        baseline.append({**c, "verdict": verdict, "rationale": rationale, "correct": correct})
+        print(f"  {mark} oracle={oracle_truth!s:5} verdict={verdict!s:5}  {c['text'][:80]}")
+        baseline.append({**c, "is_true": oracle_truth, "verdict": verdict,
+                         "rationale": rationale, "correct": correct})
 
     baseline_score = sum(1 for r in baseline if r["correct"]) / len(baseline)
     print(f"\nBaseline score: {sum(1 for r in baseline if r['correct'])}/{len(baseline)} = {baseline_score:.0%}")
 
-    # 4. Inject corrections for misses.
+    # 4. Inject corrections for misses (oracle's truth, not attacker's).
     misses = [r for r in baseline if not r["correct"]]
     print(f"\nInjecting {len(misses)} correction(s)...")
     for r in misses:
@@ -135,12 +138,14 @@ async def run(n: int, regenerate: bool) -> None:
     # 5. Re-judge the SAME claims against the patched wiki.
     print("\n=== Improved (patched wiki) ===")
     improved: list[dict] = []
-    for c in claims:
-        verdict, rationale = await judge(client, c["text"])
-        correct = verdict == c["is_true"]
+    for i, b in enumerate(baseline):
+        verdict, rationale = await judge(client, b["text"])
+        # Reuse the baseline's oracle truth — same claim, same source, same answer.
+        oracle_truth = b["is_true"]
+        correct = verdict == oracle_truth
         mark = "✓" if correct else "✗"
-        print(f"  {mark} truth={c['is_true']!s:5} verdict={verdict!s:5}  {c['text'][:80]}")
-        improved.append({**c, "verdict": verdict, "rationale": rationale, "correct": correct})
+        print(f"  {mark} oracle={oracle_truth!s:5} verdict={verdict!s:5}  {b['text'][:80]}")
+        improved.append({**b, "verdict": verdict, "rationale": rationale, "correct": correct})
 
     improved_score = sum(1 for r in improved if r["correct"]) / len(improved)
     print(f"\nImproved score: {sum(1 for r in improved if r['correct'])}/{len(improved)} = {improved_score:.0%}")

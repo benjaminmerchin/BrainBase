@@ -48,6 +48,8 @@ type EventEntry = {
   extra?: Record<string, unknown>;
 };
 
+type RoundHistoryEntry = { index: number; scorePct: number };
+
 type ApiState = {
   available: boolean;
   status: string;
@@ -56,6 +58,7 @@ type ApiState = {
   additions: string[];
   events: EventEntry[];
   wiki: string[];
+  history: RoundHistoryEntry[];
 };
 
 export async function GET() {
@@ -68,16 +71,18 @@ export async function GET() {
     additions: [],
     events: [],
     wiki: [],
+    history: [],
   };
 
   try {
-    const [roundJson, stateHash, vulnsRaw, additions, eventsRaw, wiki] = await Promise.all([
+    const [roundJson, stateHash, vulnsRaw, additions, eventsRaw, wiki, historyRaw] = await Promise.all([
       r.get("round:current"),
       r.hgetall("state"),
       r.zrevrange("vulnerabilities", 0, 4, "WITHSCORES"),
       r.lrange("wiki:additions", 0, 9),
       r.lrange("events:log", 0, 499),
       r.lrange("wiki:contents", 0, 99),
+      r.lrange("rounds:history", 0, -1),
     ]);
 
     const round: RoundPayload | null = roundJson
@@ -102,6 +107,16 @@ export async function GET() {
       })
       .filter((e): e is EventEntry => e !== null);
 
+    const history: RoundHistoryEntry[] = historyRaw
+      .map((raw) => {
+        try {
+          return JSON.parse(raw) as RoundHistoryEntry;
+        } catch {
+          return null;
+        }
+      })
+      .filter((h): h is RoundHistoryEntry => h !== null);
+
     return NextResponse.json({
       available: true,
       status: stateHash?.status ?? "unknown",
@@ -110,6 +125,7 @@ export async function GET() {
       additions,
       events,
       wiki,
+      history,
     } satisfies ApiState);
   } catch {
     return NextResponse.json(empty);
