@@ -88,68 +88,106 @@ log** streams every verdict and correction event.
 ## Architecture
 
 ```
-            [ source document ]
-                    |
-                    v
-        cognee.remember(content_type="documents")
-                    |
-                    v
-            [ Cognee knowledge graph ]
-
-       ┌──────────────────────────────────┐
-       │ Attacker (LLM, reads source)     │
-       │  emits: {text, is_true} claims   │
-       └──────────────┬───────────────────┘
-                      | XADD attacks:pending
-                      v
-              [ Redis Stream ]
-                      |
-                      | XREAD
-                      v
-       ┌──────────────────────────────────┐
-       │ Defender (cognee skill, session) │
-       │  verdict ← graph + skill         │
-       └──────────────┬───────────────────┘
-                      |
-        ┌─────────────┴──────────────┐
-        | correct                    | wrong
-        v                            v
-   reinforce graph node       ZADD vulnerabilities
-                              SkillRunEntry(score=0)
-                              improve_skill(apply=True)
-                                       |
-                                       v
-                              [ updated SKILL.md ]
-                                       |
-                                       v
-                              next round
+       [ source_truth.md ]                  [ sample_source.md ]
+              │                                      │
+              │ canonical truth (Attacker + Oracle)  │ wiki seed (has errors)
+              │                                      │
+              │                                      ▼
+              │                       cognee.remember(text)
+              │                                      │
+              │                                      ▼
+              │                       [ Cognee knowledge graph ]
+              │                                      ▲
+       ┌──────┴──────┐                               │
+       │  Attacker   │ emits {text, is_true}         │
+       │    (LLM)    │ — claimed truth, unverified   │
+       └──────┬──────┘                               │
+              │                                      │
+              ▼                                      │
+       ┌─────────────┐    cognee.recall()            │
+       │  Defender   │ ─────────────────────────────►│
+       │    (LLM)    │ ◄─ chunks                     │
+       │             │ → verdict {true|false}        │
+       └──────┬──────┘                               │
+              │                                      │
+              ▼                                      │
+       ┌─────────────┐                               │
+       │   Oracle    │ ──reads source_truth.md       │
+       │    (LLM)    │   for THIS claim only         │
+       │             │ → ground truth                │
+       └──────┬──────┘                               │
+              │                                      │
+              ▼                                      │
+       compare verdict vs ORACLE                     │
+              │                                      │
+        ┌─────┴─────┐                                │
+        │ match     │ mismatch (miss)                │
+        ▼           ▼                                │
+     OK         ┌──────────────────┐                 │
+                │ ZADD vulns       │                 │
+                │ inject Correction│  cognee.remember┘
+                │ LPUSH wiki:adds  │
+                └──────────────────┘
+                         │
+                         ▼
+                    next round
 ```
+
+The Oracle is the key piece: the Attacker generates questions AND
+labels them, but its labels aren't trusted. The Oracle re-reads the
+canonical source per-claim and produces an independent verdict. Only
+the Oracle decides whether a correction is injected. An
+`oracle_override` event fires whenever the Attacker's label disagreed
+with reality.
 
 ### Redis-as-session-memory
 
-- What the agent writes into Redis (via Cognee's session_memory):
-  the current round's running context — recent claims and verdicts,
-  intermediate evidence excerpts pulled from the graph.
-- How and when content is distilled into the graph: at end of round,
-  reinforcement signals (which graph nodes were cited in *correct*
-  verdicts) are written via plain `cognee.remember(...)` without a
-  `session_id` → promoted to the durable graph.
-- What stays in Redis vs. promoted: ephemeral reasoning traces stay in
-  Redis (per-round). Verdict signals and skill rewrites are promoted.
-- How distillation quality improved between baseline and improved run:
-  TBD — measured by Defender score on held-out claims.
+- **`round:current`** (JSON string) — incremental snapshot of the round
+  in progress. Each verdict landing pushes a new write, so the UI
+  animates as judging happens, not just at round end.
+- **`state`** (hash) — round index, score %, status, last_updated.
+- **`vulnerabilities`** (ZSET) — every claim that fooled the Defender,
+  severity 1.0 for false-positive, 0.6 for false-negative.
+- **`wiki:contents`** (list) — live snapshot of the graph entries.
+  Originals at the bottom, corrections LPUSH'd to the top, capped at 200.
+- **`events:log`** (list) — typed pipeline events (kind, level, message,
+  ts) streamed into a terminal-style UI card, last 500 retained.
+- **`graph:html`** (string) — latest cognee D3 visualization with our
+  domain JSON-Schema overlay, served straight to the UI iframe.
+- Cognee uses Redis transparently for its own session-memory layer
+  via `remember(..., session_id=…)` whenever the Defender is queried
+  inside a round.
 
-## Agents / Skills
+Everything the UI shows comes through Redis. No FastAPI sidecar, no
+filesystem, no extra port — the Python loop and the Next.js dashboard
+only talk to each other through Redis keys.
+
+## Agents / Roles
 
 ```text
-Skill path(s):    my_skills/defender/SKILL.md
-                  my_skills/attacker/SKILL.md
-Roles:
-  - Ingestor:     wiki_adversary/loop.py::ingest_source
-  - Querier:      wiki_adversary/defender.py
-  - Linter:       wiki_adversary/loop.py::lint_round
-  - Critic:       wiki_adversary/attacker.py + wiki_adversary/judge.py
+Attacker  wiki_adversary/live_demo.py::generate_attacks
+          reads: data/source_truth.md (canonical)
+          emits: 5 claims/round with claimed truth
+
+Defender  wiki_adversary/live_demo.py::judge_claim
+          reads: the wiki (cognee.recall, query_type=CHUNKS, top_k=2)
+          outputs: TRUE/FALSE verdict + rationale
+
+Oracle    wiki_adversary/live_demo.py::oracle_check
+          reads: data/source_truth.md (per-claim, never the wiki)
+          outputs: ground-truth value for that claim
+
+Ingestor  wiki_adversary/live_demo.py::ingest_once
+          seeds the wiki from data/sample_source.md (deliberately wrong)
+
+Linter    wiki_adversary/live_demo.py::run_round (last phase)
+          consumes Redis ZSET vulnerabilities, injects authoritative
+          corrections via cognee.remember(...)
 ```
+
+All four roles share the same model (`gpt-5.4-nano` by default), which
+keeps the asymmetry purely about *what each role can read*, not which
+brain they have.
 
 ## Reproduction
 

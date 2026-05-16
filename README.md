@@ -23,14 +23,30 @@ Most agents improve when a human tells them the truth. **Wiki Adversary improves
 │   3. A Defender consults the (corrupted) wiki and        │
 │      judges TRUE/FALSE. It is wrong sometimes.           │
 │                                                          │
-│   4. Every miss writes an authoritative "Correction:"    │
-│      entry into the graph via cognee.remember(...).      │
+│   4. An independent Oracle re-reads the canonical TRUTH  │
+│      for each claim and returns the real ground truth —  │
+│      it never sees the wiki. This is the only signal we  │
+│      trust when deciding whether to patch the wiki.      │
 │                                                          │
-│   5. Next round, the wiki recall surfaces the patch      │
+│   5. If the Defender disagrees with the Oracle, an       │
+│      authoritative "Correction:" is injected into the    │
+│      graph via cognee.remember(...).                     │
+│                                                          │
+│   6. Next round, the wiki recall surfaces the patch      │
 │      first. Score climbs. The wiki has self-healed.      │
 │                                                          │
 └──────────────────────────────────────────────────────────┘
 ```
+
+### Three agents, separation of concerns
+
+| Agent | Reads | Outputs | Role |
+|---|---|---|---|
+| **Attacker** | canonical truth source | mixed true/false claims | adversary (may hallucinate) |
+| **Defender** | the wiki (cognee graph) | TRUE/FALSE verdict | system under test |
+| **Oracle** | canonical truth source | TRUE/FALSE ground truth | independent ground-truth authority |
+
+Decisions to inject a correction compare the Defender against the **Oracle**, not against the Attacker. If the Attacker's own labelling is wrong, the Oracle overrides it and the wiki stays clean.
 
 ## What's in this repo
 
@@ -118,7 +134,7 @@ Open [http://localhost:3000](http://localhost:3000). The nav grows a green pulsi
 |---|---|
 | Memory engine | [Cognee](https://docs.cognee.ai) 1.1 |
 | Real-time / state | [Redis](https://redis.io) 8 |
-| LLM | OpenAI `gpt-4o-mini` |
+| LLM | OpenAI `gpt-5.4-nano` (Attacker, Defender, Oracle all on the same model) |
 | Backend | Python 3.12, `asyncio`, `openai`, `redis-py` |
 | Frontend | Next.js 16 (App Router, Turbopack), React 19, Tailwind v4 |
 | UI primitives | [shadcn/ui](https://ui.shadcn.com) (base-nova), [MagicUI](https://magicui.design) (Aurora, AnimatedList, NumberTicker, BorderBeam) |
