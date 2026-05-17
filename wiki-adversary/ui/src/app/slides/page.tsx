@@ -29,7 +29,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLiveState, type HistoryEntry } from "@/lib/state-api";
 
-const TOTAL_SLIDES = 11;
+const TOTAL_SLIDES = 12;
 
 export default function SlidesPage() {
   const [i, setI] = useState(0);
@@ -92,6 +92,7 @@ export default function SlidesPage() {
           {i === 8 && <Slide9Numbers />}
           {i === 9 && <Slide10Redis />}
           {i === 10 && <Slide11Stack />}
+          {i === 11 && <Slide12Thanks />}
         </div>
       </main>
 
@@ -600,6 +601,43 @@ function Slide11Stack() {
       <p className="mt-10 text-center text-xs text-muted-foreground">
         Open source · MIT · github.com/benjaminmerchin/BrainBase
       </p>
+    </div>
+  );
+}
+
+function Slide12Thanks() {
+  const repo = "https://github.com/benjaminmerchin/BrainBase";
+  const qr = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=0&color=ffffff&bgcolor=0a0a0a&format=svg&data=${encodeURIComponent(repo)}`;
+  return (
+    <div className="text-center">
+      <h2 className="text-balance text-6xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-7xl">
+        Thanks.
+      </h2>
+      <p className="mx-auto mt-6 max-w-lg text-pretty text-base text-muted-foreground">
+        Scan to open the repo · happy to take questions.
+      </p>
+      <div className="mx-auto mt-10 inline-block rounded-2xl border border-border/60 bg-card p-4">
+        <img
+          src={qr}
+          alt={`QR code linking to ${repo}`}
+          width={320}
+          height={320}
+          className="block h-[260px] w-[260px] sm:h-[320px] sm:w-[320px]"
+        />
+      </div>
+      <div className="mt-8 inline-flex flex-col items-center gap-1.5 text-sm">
+        <a
+          href={repo}
+          target="_blank"
+          rel="noreferrer"
+          className="font-mono text-foreground transition-colors hover:text-violet-400"
+        >
+          github.com/benjaminmerchin/BrainBase
+        </a>
+        <span className="text-xs text-muted-foreground">
+          Benjamin Merchin · Wiki Adversary · 2026-05-16
+        </span>
+      </div>
     </div>
   );
 }
