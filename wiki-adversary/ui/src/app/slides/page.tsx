@@ -611,16 +611,16 @@ function Slide12Thanks() {
   return (
     <div className="flex flex-col items-center text-center">
       <h2 className="text-balance text-6xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-8xl">
-        Now go{" "}
+        Thank{" "}
         <AuroraText
           className="font-semibold"
           colors={["#a78bfa", "#7c3aed", "#22d3ee", "#a78bfa"]}
         >
-          lie to it.
+          you.
         </AuroraText>
       </h2>
       <p className="mt-10 text-2xl text-muted-foreground">
-        Open source · clone it · break it · improve it.
+        Open source · scan to clone · happy to take questions.
       </p>
       <div className="mt-12 flex flex-col items-center gap-6 sm:flex-row sm:gap-10">
         <div className="rounded-2xl border border-border/60 bg-card p-3">
