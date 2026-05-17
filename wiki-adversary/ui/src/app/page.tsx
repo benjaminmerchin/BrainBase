@@ -171,6 +171,16 @@ export default function Home() {
               Demo
             </a>
             <a
+              href="/slides"
+              className={cn(
+                buttonVariants({ variant: "default", size: "sm" }),
+                "gap-1.5",
+              )}
+            >
+              <Play className="h-3.5 w-3.5" />
+              Pitch
+            </a>
+            <a
               href="https://github.com/benjaminmerchin/BrainBase"
               target="_blank"
               rel="noreferrer"
