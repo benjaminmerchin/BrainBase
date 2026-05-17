@@ -80,7 +80,7 @@ export default function SlidesPage() {
 
       {/* Slide stage */}
       <main className="flex min-h-dvh items-center justify-center px-8 pb-24 pt-20 sm:px-16">
-        <div className="w-full max-w-6xl">
+        <div className="w-full max-w-7xl">
           {i === 0 && <Slide1 />}
           {i === 1 && <Slide2 />}
           {i === 2 && <Slide3 />}
@@ -149,7 +149,7 @@ function Slide1() {
           lied to.
         </AuroraText>
       </h1>
-      <p className="mx-auto mt-10 max-w-xl text-pretty text-lg text-muted-foreground">
+      <p className="mx-auto mt-10 max-w-2xl text-pretty text-2xl text-muted-foreground">
         Wiki Adversary — an adversarial self-hardening LLM wiki.
       </p>
       <p className="mt-16 text-xs text-muted-foreground/70">
@@ -162,17 +162,17 @@ function Slide1() {
 function Slide2() {
   return (
     <div>
-      <h2 className="mb-12 text-center text-3xl font-medium tracking-tight sm:text-5xl">
+      <h2 className="mb-12 text-center text-5xl font-medium tracking-tight sm:text-7xl">
         Most wikis improve by being{" "}
         <span className="text-muted-foreground">told the truth.</span>
       </h2>
-      <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-5xl">
+      <h2 className="text-center text-5xl font-semibold tracking-tight sm:text-7xl">
         Ours improves by being{" "}
         <AuroraText className="font-semibold" colors={["#fb7185", "#a78bfa", "#22d3ee", "#fb7185"]}>
           lied to.
         </AuroraText>
       </h2>
-      <p className="mx-auto mt-16 max-w-xl text-center text-sm text-muted-foreground">
+      <p className="mx-auto mt-16 max-w-3xl text-center text-xl text-muted-foreground">
         Inspired by Karpathy&apos;s LLM Wiki note — &ldquo;the LLM
         incrementally builds and maintains a persistent wiki.&rdquo;
       </p>
@@ -183,10 +183,10 @@ function Slide2() {
 function Slide3() {
   return (
     <div>
-      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
         Three agents.
       </h2>
-      <p className="mb-12 text-center text-base text-muted-foreground">
+      <p className="mb-12 text-center text-xl text-muted-foreground">
         Each one reads different things. That asymmetry is the whole game.
       </p>
       <div className="grid gap-4 lg:grid-cols-3">
@@ -213,7 +213,7 @@ function Slide3() {
           beam
         />
       </div>
-      <p className="mt-10 text-center text-sm text-muted-foreground">
+      <p className="mt-10 text-center text-xl text-muted-foreground">
         Decisions compare <strong className="text-foreground">Defender vs Oracle</strong> — never the Attacker&apos;s own labels.
       </p>
     </div>
@@ -223,10 +223,10 @@ function Slide3() {
 function Slide4() {
   return (
     <div>
-      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
         The wiki starts <span className="text-rose-400">wrong</span>.
       </h2>
-      <p className="mb-12 text-center text-base text-muted-foreground">
+      <p className="mb-12 text-center text-xl text-muted-foreground">
         Same topic, two files. Spot the difference.
       </p>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -255,7 +255,7 @@ function Slide4() {
           ]}
         />
       </div>
-      <p className="mt-10 text-center text-sm text-muted-foreground">
+      <p className="mt-10 text-center text-xl text-muted-foreground">
         The wiki is intentionally seeded with errors. The attacker generates honest claims about the real source. The wiki fails. Then it heals.
       </p>
     </div>
@@ -266,17 +266,17 @@ function Slide5Live({ live }: { live: ReturnType<typeof useLiveState> }) {
   const round = live?.round;
   return (
     <div>
-      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
         Watch it run.
       </h2>
-      <p className="mb-8 text-center text-base text-muted-foreground">
+      <p className="mb-8 text-center text-xl text-muted-foreground">
         Live data — round {round?.index ?? "—"} · status: {live?.status ?? "—"}
       </p>
-      <div className="rounded-xl border border-border/60 bg-card p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Current round score</span>
+      <div className="rounded-xl border border-border/60 bg-card p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <span className="text-base text-muted-foreground">Current round score</span>
           {round && (
-            <span className="text-5xl font-semibold tracking-tight">
+            <span className="text-7xl font-semibold tracking-tight">
               <NumberTicker
                 key={`slide5-${round.index}`}
                 value={round.scorePct}
@@ -287,7 +287,7 @@ function Slide5Live({ live }: { live: ReturnType<typeof useLiveState> }) {
           )}
         </div>
         {round && (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {round.claims.map((c) => {
               const correct = c.verdict !== null && c.verdict === c.truth;
               const wrong = c.verdict !== null && c.verdict !== c.truth;
@@ -295,16 +295,16 @@ function Slide5Live({ live }: { live: ReturnType<typeof useLiveState> }) {
                 <div
                   key={c.id}
                   className={cn(
-                    "rounded-lg border px-3 py-2 text-xs",
+                    "rounded-lg border px-4 py-3 text-base",
                     correct && "border-emerald-500/30 bg-emerald-500/5",
                     wrong && "border-rose-500/30 bg-rose-500/5",
                     !correct && !wrong && "border-border/60 bg-secondary/30",
                   )}
                 >
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start justify-between gap-3">
                     <span className="leading-snug">{c.text}</span>
-                    {correct && <Check className="h-4 w-4 shrink-0 text-emerald-400" />}
-                    {wrong && <X className="h-4 w-4 shrink-0 text-rose-400" />}
+                    {correct && <Check className="h-5 w-5 shrink-0 text-emerald-400" />}
+                    {wrong && <X className="h-5 w-5 shrink-0 text-rose-400" />}
                   </div>
                 </div>
               );
@@ -320,35 +320,35 @@ function Slide6Wiki({ wiki }: { wiki: string[] }) {
   const corrections = wiki.filter((w) => w.startsWith("Correction"));
   return (
     <div>
-      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
         The wiki self-heals.
       </h2>
-      <p className="mb-8 text-center text-base text-muted-foreground">
+      <p className="mb-8 text-center text-xl text-muted-foreground">
         Each miss writes a new entry into the cognee graph.
       </p>
       <div className="rounded-xl border border-border/60 bg-card">
-        <div className="border-b border-border/60 px-5 py-3 text-sm">
+        <div className="border-b border-border/60 px-6 py-4 text-base">
           <span className="font-medium">Wiki contents</span>
           <span className="ml-2 text-muted-foreground">
             {wiki.length} entries · {corrections.length} corrections
           </span>
         </div>
-        <ScrollArea className="h-[420px] p-4">
-          <div className="space-y-2">
+        <ScrollArea className="h-[480px] p-5">
+          <div className="space-y-3">
             {wiki.map((fact, idx) => {
               const isCorrection = fact.startsWith("Correction");
               return (
                 <pre
                   key={idx}
                   className={cn(
-                    "overflow-x-auto whitespace-pre-wrap rounded-lg p-3 text-xs leading-relaxed",
+                    "overflow-x-auto whitespace-pre-wrap rounded-lg p-4 text-sm leading-relaxed",
                     isCorrection
                       ? "border border-emerald-500/30 bg-emerald-500/5 text-foreground/90"
                       : "border border-border/60 bg-secondary/30 text-muted-foreground",
                   )}
                 >
                   {isCorrection && (
-                    <span className="mb-1 mr-2 inline-block rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-emerald-300">
+                    <span className="mb-2 mr-2 inline-block rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wider text-emerald-300">
                       patched
                     </span>
                   )}
@@ -366,10 +366,10 @@ function Slide6Wiki({ wiki }: { wiki: string[] }) {
 function Slide7Graph({ available, roundIndex }: { available: boolean; roundIndex: number }) {
   return (
     <div>
-      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
         The knowledge graph.
       </h2>
-      <p className="mb-8 text-center text-base text-muted-foreground">
+      <p className="mb-8 text-center text-xl text-muted-foreground">
         Cognee&apos;s D3 force-directed view · refreshed every round
       </p>
       <div className="overflow-hidden rounded-xl border border-border/60 bg-white">
@@ -395,7 +395,7 @@ function Slide8Trend({ history }: { history: HistoryEntry[] }) {
   if (history.length === 0) {
     return (
       <div>
-        <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
           Improvement is empirical.
         </h2>
         <p className="text-center text-muted-foreground">
@@ -411,10 +411,10 @@ function Slide8Trend({ history }: { history: HistoryEntry[] }) {
 
   return (
     <div>
-      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
         Improvement is empirical.
       </h2>
-      <p className="mb-12 text-center text-base text-muted-foreground">
+      <p className="mb-12 text-center text-xl text-muted-foreground">
         Score across {history.length} round{history.length === 1 ? "" : "s"} — measured, not narrated.
       </p>
       <div className="grid grid-cols-3 gap-4">
@@ -478,8 +478,8 @@ function Slide9Numbers() {
         </div>
       </div>
       <div className="text-center">
-        <div className="inline-flex items-center gap-3 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-5 py-2 text-sm font-medium text-emerald-300">
-          <TrendingUp className="h-4 w-4" />
+        <div className="inline-flex items-center gap-3 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-6 py-3 text-xl font-medium text-emerald-300">
+          <TrendingUp className="h-5 w-5" />
           +60 points · 7 claims flipped from wrong to right
         </div>
       </div>
@@ -502,30 +502,30 @@ function Slide10Redis() {
   ];
   return (
     <div>
-      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
         Built on{" "}
         <AuroraText className="font-semibold" colors={["#dc382d", "#a78bfa", "#22d3ee", "#dc382d"]}>
           Redis Cloud
         </AuroraText>
       </h2>
-      <p className="mb-10 text-center text-base text-muted-foreground">
+      <p className="mb-10 text-center text-xl text-muted-foreground">
         Not a cache. Six keys do all the state — no FastAPI sidecar.
       </p>
       <div className="rounded-xl border border-border/60 bg-card">
         <div className="divide-y divide-border/40">
           {keys.map((k) => (
-            <div key={k.name} className="flex items-center gap-4 px-5 py-3">
-              <Database className="h-4 w-4 shrink-0 text-muted-foreground/60" />
-              <code className="w-44 shrink-0 text-sm text-foreground/90">{k.name}</code>
-              <Badge variant="outline" className="shrink-0 border-border/60 text-[10px] uppercase">
+            <div key={k.name} className="flex items-center gap-5 px-6 py-4">
+              <Database className="h-5 w-5 shrink-0 text-muted-foreground/60" />
+              <code className="w-56 shrink-0 text-lg text-foreground/90">{k.name}</code>
+              <Badge variant="outline" className="shrink-0 border-border/60 text-xs uppercase">
                 {k.type}
               </Badge>
-              <span className="text-sm text-muted-foreground">{k.desc}</span>
+              <span className="text-lg text-muted-foreground">{k.desc}</span>
             </div>
           ))}
         </div>
       </div>
-      <p className="mt-10 text-center text-sm text-muted-foreground">
+      <p className="mt-10 text-center text-xl text-muted-foreground">
         Python loop writes · Next.js route reads · UI polls /api/state at 1 Hz.
       </p>
     </div>
@@ -565,10 +565,10 @@ function Slide11Stack() {
   ];
   return (
     <div>
-      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mb-3 text-center text-5xl font-semibold tracking-tight sm:text-6xl">
         Built with.
       </h2>
-      <p className="mb-12 text-center text-base text-muted-foreground">
+      <p className="mb-12 text-center text-xl text-muted-foreground">
         Off-the-shelf parts. Three hours of code.
       </p>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -584,12 +584,12 @@ function Slide11Stack() {
               {g.items.map((it) => (
                 <div
                   key={it.name}
-                  className="flex items-baseline justify-between gap-4 border-b border-border/40 pb-3 last:border-b-0 last:pb-0"
+                  className="flex items-baseline justify-between gap-4 border-b border-border/40 pb-4 last:border-b-0 last:pb-0"
                 >
-                  <span className="text-sm font-medium tracking-tight">
+                  <span className="text-xl font-medium tracking-tight">
                     {it.name}
                   </span>
-                  <span className="text-right text-xs text-muted-foreground">
+                  <span className="text-right text-base text-muted-foreground">
                     {it.desc}
                   </span>
                 </div>
@@ -613,7 +613,7 @@ function Slide12Thanks() {
       <h2 className="text-balance text-6xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-7xl">
         Thanks.
       </h2>
-      <p className="mx-auto mt-6 max-w-lg text-pretty text-base text-muted-foreground">
+      <p className="mx-auto mt-8 max-w-2xl text-pretty text-2xl text-muted-foreground">
         Scan to open the repo · happy to take questions.
       </p>
       <div className="mx-auto mt-10 inline-block rounded-2xl border border-border/60 bg-card p-4">
@@ -625,16 +625,16 @@ function Slide12Thanks() {
           className="block h-[260px] w-[260px] sm:h-[320px] sm:w-[320px]"
         />
       </div>
-      <div className="mt-8 inline-flex flex-col items-center gap-1.5 text-sm">
+      <div className="mt-8 inline-flex flex-col items-center gap-2 text-lg">
         <a
           href={repo}
           target="_blank"
           rel="noreferrer"
-          className="font-mono text-foreground transition-colors hover:text-violet-400"
+          className="font-mono text-xl text-foreground transition-colors hover:text-violet-400"
         >
           github.com/benjaminmerchin/BrainBase
         </a>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-base text-muted-foreground">
           Benjamin Merchin · Wiki Adversary · 2026-05-16
         </span>
       </div>
@@ -666,18 +666,18 @@ function AgentCard({
   }[tone];
   return (
     <div className={cn("relative overflow-hidden rounded-xl border bg-card p-6", border)}>
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-5 flex items-center gap-2.5">
         {icon}
-        <span className="text-lg font-medium">{name}</span>
+        <span className="text-2xl font-medium">{name}</span>
       </div>
-      <div className="space-y-3 text-sm">
+      <div className="space-y-4 text-lg">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Reads</div>
-          <div className="mt-0.5 text-foreground/90">{reads}</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Reads</div>
+          <div className="mt-1 text-foreground/90">{reads}</div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Outputs</div>
-          <div className="mt-0.5 text-foreground/90">{outputs}</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Outputs</div>
+          <div className="mt-1 text-foreground/90">{outputs}</div>
         </div>
       </div>
       {beam && (
@@ -704,17 +704,17 @@ function SourceCard({
   const bg = tone === "rose" ? "bg-rose-500/5" : "bg-emerald-500/5";
   return (
     <div className={cn("rounded-xl border bg-card", border)}>
-      <div className="flex items-center gap-2 border-b border-border/60 px-5 py-3">
+      <div className="flex items-center gap-3 border-b border-border/60 px-6 py-4">
         {icon}
         <div>
-          <div className="font-mono text-sm">{title}</div>
-          <div className="text-xs text-muted-foreground">{subtitle}</div>
+          <div className="font-mono text-lg">{title}</div>
+          <div className="text-sm text-muted-foreground">{subtitle}</div>
         </div>
       </div>
-      <ul className={cn("space-y-2 p-5 text-sm", bg)}>
+      <ul className={cn("space-y-3 p-6", bg)}>
         {lines.map((line) => (
-          <li key={line} className="font-mono text-xs leading-relaxed text-foreground/90">
-            <Pencil className="mr-2 inline h-3 w-3 text-muted-foreground/60" />
+          <li key={line} className="font-mono text-sm leading-relaxed text-foreground/90">
+            <Pencil className="mr-2 inline h-3.5 w-3.5 text-muted-foreground/60" />
             {line}
           </li>
         ))}
