@@ -34,7 +34,7 @@ DATASET = "wiki-adversary"
 DEFAULT_WIKI_SOURCE = "data/sample_source.md"  # seeds the wiki (contains errors)
 DEFAULT_TRUTH_SOURCE = "data/source_truth.md"  # attacker's ground truth
 CLAIMS_PER_ROUND = 5
-ROUND_PAUSE_SECONDS = 4
+ROUND_PAUSE_SECONDS = 60
 
 _stop = asyncio.Event()
 

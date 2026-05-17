@@ -148,12 +148,13 @@ async def set_graph_html(r: redis.Redis, html: str) -> None:
 
 async def record_round_score(r: redis.Redis, index: int, score_pct: int) -> None:
     """Append one round's final score to the history list. Drives the
-    score-trend sparkline in the UI."""
+    score-trend sparkline in the UI. Cap is high enough that we keep the
+    full demo history (an event-long loop won't realistically exceed it)."""
     await r.rpush(
         "rounds:history",
         json.dumps({"index": index, "scorePct": score_pct}),
     )
-    await r.ltrim("rounds:history", -100, -1)
+    await r.ltrim("rounds:history", -10000, -1)
 
 
 async def push_attack(r: redis.Redis, round_idx: int, claim: dict) -> None:
