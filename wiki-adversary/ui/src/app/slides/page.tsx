@@ -29,7 +29,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLiveState, type HistoryEntry } from "@/lib/state-api";
 
-const TOTAL_SLIDES = 10;
+const TOTAL_SLIDES = 11;
 
 export default function SlidesPage() {
   const [i, setI] = useState(0);
@@ -91,6 +91,7 @@ export default function SlidesPage() {
           {i === 7 && <Slide8Trend history={live?.history ?? []} />}
           {i === 8 && <Slide9Numbers />}
           {i === 9 && <Slide10Redis />}
+          {i === 10 && <Slide11Stack />}
         </div>
       </main>
 
@@ -525,6 +526,79 @@ function Slide10Redis() {
       </div>
       <p className="mt-10 text-center text-sm text-muted-foreground">
         Python loop writes · Next.js route reads · UI polls /api/state at 1 Hz.
+      </p>
+    </div>
+  );
+}
+
+function Slide11Stack() {
+  const stack = [
+    {
+      group: "Memory",
+      items: [
+        { name: "Cognee 1.1", desc: "knowledge graph + memory engine" },
+        { name: "Redis Cloud", desc: "every key shapes the UI · no FastAPI" },
+      ],
+    },
+    {
+      group: "AI",
+      items: [
+        { name: "OpenAI gpt-5.4-nano", desc: "Attacker · Defender · Oracle" },
+        { name: "D3 force graph", desc: "via cognee.visualize()" },
+      ],
+    },
+    {
+      group: "Frontend",
+      items: [
+        { name: "Next.js 16", desc: "App Router · Turbopack" },
+        { name: "React 19 · Tailwind v4", desc: "shadcn/ui + MagicUI" },
+      ],
+    },
+    {
+      group: "Backend",
+      items: [
+        { name: "Python 3.12", desc: "asyncio loop · ~250 lines" },
+        { name: "ioredis", desc: "single-key reads from the Next route" },
+      ],
+    },
+  ];
+  return (
+    <div>
+      <h2 className="mb-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+        Built with.
+      </h2>
+      <p className="mb-12 text-center text-base text-muted-foreground">
+        Off-the-shelf parts. Three hours of code.
+      </p>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {stack.map((g) => (
+          <div
+            key={g.group}
+            className="rounded-xl border border-border/60 bg-card p-6"
+          >
+            <div className="mb-4 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {g.group}
+            </div>
+            <div className="space-y-3">
+              {g.items.map((it) => (
+                <div
+                  key={it.name}
+                  className="flex items-baseline justify-between gap-4 border-b border-border/40 pb-3 last:border-b-0 last:pb-0"
+                >
+                  <span className="text-sm font-medium tracking-tight">
+                    {it.name}
+                  </span>
+                  <span className="text-right text-xs text-muted-foreground">
+                    {it.desc}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-10 text-center text-xs text-muted-foreground">
+        Open source · MIT · github.com/benjaminmerchin/BrainBase
       </p>
     </div>
   );
